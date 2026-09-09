@@ -3,13 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "pnpm worklet && next dev",
+    "build": "pnpm worklet && next build",
     "start": "next start",
     "lint": "eslint",
     "test": "node --test --experimental-strip-types \"src/core/**/*.test.ts\"",
     "typecheck": "tsc --noEmit",
-    "icons": "node scripts/generate-icons.mjs"
+    "icons": "node scripts/generate-icons.mjs",
+    "worklet": "node scripts/build-worklet.mjs"
   },
   "dependencies": {
     "next": "16.3.4",

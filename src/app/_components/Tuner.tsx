@@ -35,7 +35,8 @@ import {
   removeTuning,
   subscribe,
 } from "../_storage/saved-tunings";
-import { dispose, isSupported, play, stop } from "../_audio/pluck-voice";
+import { dispose, play, stop } from "../_audio/pluck-voice";
+import { isSupported } from "../_audio/context";
 
 /** A note rings for four seconds; clear the highlight when it finishes. */
 const RING_MS = 4000;

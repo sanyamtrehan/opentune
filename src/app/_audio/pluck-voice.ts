@@ -9,6 +9,8 @@
 
 import { pluck } from "@/core/audio/karplus-strong.ts";
 
+import { closeContext, currentContext, unlock } from "./context";
+
 /** How long a rendered pluck lasts. Long enough to tune a string against. */
 const NOTE_SECONDS = 4;
 
@@ -18,43 +20,17 @@ const RELEASE_SECONDS = 0.08;
 /** Rendering is not free, so identical pitches reuse their buffer. */
 const bufferCache = new Map<string, AudioBuffer>();
 
-let context: AudioContext | null = null;
 let master: GainNode | null = null;
 let active: { source: AudioBufferSourceNode; gain: GainNode } | null = null;
 
-type AudioContextConstructor = new () => AudioContext;
-
-function audioContextConstructor(): AudioContextConstructor | null {
-  if (typeof window === "undefined") return null;
-  const legacy = (window as unknown as { webkitAudioContext?: AudioContextConstructor })
-    .webkitAudioContext;
-  return window.AudioContext ?? legacy ?? null;
-}
-
-/** True when this browser can play anything at all. */
-export function isSupported(): boolean {
-  return audioContextConstructor() !== null;
-}
-
-/**
- * Create and unlock the audio context. Must be called from inside a user
- * gesture: iOS Safari starts every context suspended and only a real tap will
- * resume it, so every play path runs through here first.
- */
-export async function unlock(): Promise<AudioContext | null> {
-  const Constructor = audioContextConstructor();
-  if (!Constructor) return null;
-
-  if (!context) {
-    context = new Constructor();
-    master = context.createGain();
+/** The output stage, created on first use against the shared context. */
+function masterFor(target: AudioContext): GainNode {
+  if (!master) {
+    master = target.createGain();
     master.gain.value = 1;
-    master.connect(context.destination);
+    master.connect(target.destination);
   }
-  if (context.state === "suspended") {
-    await context.resume();
-  }
-  return context;
+  return master;
 }
 
 function bufferFor(target: AudioContext, frequency: number): AudioBuffer {
@@ -85,6 +61,7 @@ function bufferFor(target: AudioContext, frequency: number): AudioBuffer {
  * worse than useless when you are trying to match one of them.
  */
 export function stop(): void {
+  const context = currentContext();
   if (!context || !active) return;
   const { source, gain } = active;
   active = null;
@@ -99,7 +76,8 @@ export function stop(): void {
 /** Play a pitch. Resolves once the note has started, not when it ends. */
 export async function play(frequency: number): Promise<void> {
   const target = await unlock();
-  if (!target || !master) return;
+  if (!target) return;
+  const output = masterFor(target);
 
   stop();
 
@@ -110,7 +88,7 @@ export async function play(frequency: number): Promise<void> {
   gain.gain.value = 1;
 
   source.connect(gain);
-  gain.connect(master);
+  gain.connect(output);
 
   const handle = { source, gain };
   source.onended = () => {
@@ -127,8 +105,7 @@ export async function play(frequency: number): Promise<void> {
 export function dispose(): void {
   stop();
   bufferCache.clear();
-  void context?.close();
-  context = null;
   master = null;
   active = null;
+  closeContext();
 }
