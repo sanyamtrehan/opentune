@@ -54,9 +54,13 @@ export interface Fretboard {
  * the same shape at different `rootOffset`s. ~15 shapes generate the entire
  * space of named and unnamed tunings.
  */
+export type TuningFamily = "standard" | "drop" | "open" | "other";
+
 export interface TuningShape {
   id: string;
   name: string;
+  /** Grouping for presentation. Catalogue data, not a UI concern. */
+  family: TuningFamily;
   /** Semitones above the lowest string, ascending. Length = string count. */
   shape: number[];
   /** Semitones to transpose the whole shape, relative to standard E. */

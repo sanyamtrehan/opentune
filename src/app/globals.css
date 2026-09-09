@@ -1,26 +1,55 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Dark and warm on purpose: the stated use case is a phone held at arm's
+ * length in a dim rehearsal room. Amber is the only accent — it marks the one
+ * string currently sounding, and nothing else is allowed to compete with it.
+ */
+@theme {
+  --color-ground: #0c0a09;
+  --color-panel: #1c1917;
+  --color-edge: #292524;
+  --color-ink: #fafaf9;
+  --color-ink-muted: #a8a29e;
+  --color-ink-faint: #57534e;
+
+  --color-accent: #f59e0b;
+  --color-accent-bright: #fbbf24;
+  --color-accent-dim: #78350f;
+
+  --color-wood: #1f1a17;
+  --color-wood-edge: #3a2f28;
+  --color-string: #6b6660;
+
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-ground);
+  color: var(--color-ink);
+}
+
+/* The glow on a sounding peg. Kept here so the timing is stated once. */
+@keyframes ring {
+  from {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-accent) 55%, transparent);
+  }
+  to {
+    box-shadow: 0 0 0 18px transparent;
+  }
+}
+
+.peg-ringing {
+  animation: ring 1.4s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .peg-ringing {
+    animation: none;
+  }
 }
