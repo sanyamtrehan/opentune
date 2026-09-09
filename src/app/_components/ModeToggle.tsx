@@ -1,0 +1,51 @@
+"use client";
+
+/**
+ * Mode switch.
+ *
+ * The labels are "Custom" and "Auto" because that is what guitarists using
+ * other tuners expect. The code never uses those words — see AGENTS.md.
+ */
+
+export type Mode = "ear" | "mic";
+
+const MODES: ReadonlyArray<{ mode: Mode; label: string; hint: string }> = [
+  { mode: "ear", label: "Custom", hint: "Hear the pitch and tune by ear" },
+  { mode: "mic", label: "Auto", hint: "Play, and the needle shows the way" },
+];
+
+export interface ModeToggleProps {
+  value: Mode;
+  onChange: (mode: Mode) => void;
+}
+
+export function ModeToggle({ value, onChange }: ModeToggleProps) {
+  return (
+    <div
+      role="tablist"
+      aria-label="Tuning mode"
+      className="flex gap-1 rounded-xl border border-edge bg-panel p-1"
+    >
+      {MODES.map(({ mode, label, hint }) => {
+        const selected = mode === value;
+        return (
+          <button
+            key={mode}
+            role="tab"
+            type="button"
+            aria-selected={selected}
+            title={hint}
+            onClick={() => onChange(mode)}
+            className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright ${
+              selected
+                ? "bg-accent-dim/40 text-accent-bright"
+                : "text-ink-muted hover:text-ink"
+            }`}
+          >
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
