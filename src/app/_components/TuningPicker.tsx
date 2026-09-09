@@ -8,7 +8,7 @@
  * one-handed with a guitar in your lap than any custom dropdown.
  */
 
-import type { TuningFamily, TuningShape } from "@/core/music/types.ts";
+import type { Tuning, TuningFamily, TuningShape } from "@/core/music/types.ts";
 
 const FAMILY_LABELS: ReadonlyArray<[TuningFamily, string]> = [
   ["standard", "Standard"],
@@ -19,11 +19,13 @@ const FAMILY_LABELS: ReadonlyArray<[TuningFamily, string]> = [
 
 export interface TuningPickerProps {
   presets: readonly TuningShape[];
+  /** The user's own tunings, listed first because they went looking for them. */
+  saved: readonly Tuning[];
   value: string;
   onChange: (id: string) => void;
 }
 
-export function TuningPicker({ presets, value, onChange }: TuningPickerProps) {
+export function TuningPicker({ presets, saved, value, onChange }: TuningPickerProps) {
   return (
     <label className="flex flex-col gap-2">
       <span className="text-xs font-medium uppercase tracking-widest text-ink-muted">
@@ -34,6 +36,15 @@ export function TuningPicker({ presets, value, onChange }: TuningPickerProps) {
         onChange={(event) => onChange(event.target.value)}
         className="w-full appearance-none rounded-xl border border-edge bg-panel px-4 py-3 text-base text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright"
       >
+        {saved.length > 0 && (
+          <optgroup label="Yours">
+            {saved.map((tuning) => (
+              <option key={tuning.id} value={tuning.id}>
+                {tuning.name}
+              </option>
+            ))}
+          </optgroup>
+        )}
         {FAMILY_LABELS.map(([family, label]) => {
           const group = presets.filter((preset) => preset.family === family);
           if (group.length === 0) return null;
