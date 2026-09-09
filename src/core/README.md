@@ -10,7 +10,9 @@ a browser or an audio device.
   returning readings out. The AudioWorklet lives in the app layer and is a thin
   shell around this.
 
-Web Audio glue, React hooks and components belong in `src/app/`, not here.
+Web Audio glue, React hooks and components belong in `src/app/`, not here —
+in underscore-prefixed private folders (`_audio/`, `_components/`), which
+Next.js keeps out of the routing system.
 
 ## Tests
 
