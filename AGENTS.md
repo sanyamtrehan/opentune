@@ -12,6 +12,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 A free, browser-based guitar tuner with full support for alternate tunings.
 
+New to this project? [docs/HANDOVER.md](./docs/HANDOVER.md) has the planning
+context, the open questions, and suggested next steps.
+
 ## Why this exists
 
 Apps like Tuna (Yousician), Ultimate Guitar and similar put every tuning except
