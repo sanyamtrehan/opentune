@@ -82,3 +82,16 @@ export interface PitchReading {
   /** 0-1. Below roughly 0.9, the reading should not be displayed. */
   clarity: number;
 }
+
+/**
+ * A bare interval pattern, with no root.
+ *
+ * `intervals` are semitones above the lowest string, ascending. This is the
+ * generative unit: Open D and Open E are the same pattern at different roots,
+ * so they appear here once and twice in the preset list.
+ */
+export interface IntervalPattern {
+  id: string;
+  name: string;
+  intervals: number[];
+}

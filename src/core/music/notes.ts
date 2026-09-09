@@ -127,3 +127,29 @@ export function parseNote(text: string): Note {
     octave: Number.parseInt(rawOctave, 10),
   };
 }
+
+/** Semitones above C for a natural letter, ignoring any accidental. */
+export function letterSemitones(letter: Letter): number {
+  return LETTER_SEMITONES[letter];
+}
+
+/** The seven letters in order, so scale degrees can walk them. */
+export const LETTERS: readonly Letter[] = ["C", "D", "E", "F", "G", "A", "B"];
+
+/**
+ * Build the note at `midi` that is spelled with the given letter.
+ *
+ * The accidental and octave both fall out of the letter: asking for `midi` 61
+ * as a C gives C#4, as a D gives Db4. Throws if the letter cannot reach the
+ * pitch inside a double accidental.
+ */
+export function spellAs(midi: number, letter: Letter): Note {
+  // Round rather than floor: the octave that puts the letter closest to the
+  // pitch is the one that needs the smallest accidental.
+  const octave = Math.round((midi - LETTER_SEMITONES[letter]) / 12) - 1;
+  const accidental = midi - ((octave + 1) * 12 + LETTER_SEMITONES[letter]);
+  if (accidental < -2 || accidental > 2) {
+    throw new RangeError(`Cannot spell MIDI ${midi} as ${letter}`);
+  }
+  return { letter, accidental: accidental as Accidental, octave };
+}
