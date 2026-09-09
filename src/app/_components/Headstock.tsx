@@ -26,16 +26,19 @@ const PEG_X = { left: 52, right: 248 };
 /**
  * Which peg each string hangs from, low string first.
  *
- * Reading down the left side: 6th, 5th, 4th. Down the right side: 1st, 2nd,
- * 3rd — so the 4th and 3rd, the two middle strings, end up nearest the nut.
+ * The outer strings take the pegs nearest the nut, and the pitch climbs as
+ * you go *up* each side: left side bottom to top is 6th, 5th, 4th, and right
+ * side bottom to top is 1st, 2nd, 3rd. So the low E sits at the bottom left
+ * and the high E at the bottom right, which is how a 3+3 headstock reads when
+ * you are looking down at it with the guitar in your lap.
  */
 const PEG_LAYOUT = [
-  { side: "left", row: 0 },
-  { side: "left", row: 1 },
   { side: "left", row: 2 },
-  { side: "right", row: 2 },
-  { side: "right", row: 1 },
+  { side: "left", row: 1 },
+  { side: "left", row: 0 },
   { side: "right", row: 0 },
+  { side: "right", row: 1 },
+  { side: "right", row: 2 },
 ] as const;
 
 /** Where each string crosses the nut, low to high, left to right. */
