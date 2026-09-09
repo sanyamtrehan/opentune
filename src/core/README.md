@@ -11,3 +11,12 @@ a browser or an audio device.
   shell around this.
 
 Web Audio glue, React hooks and components belong in `src/app/`, not here.
+
+## Tests
+
+`pnpm test` runs Node's built-in test runner directly over the TypeScript —
+no bundler, no jsdom, no test framework dependency. That is only possible
+because nothing here touches the DOM, which is the point of the boundary.
+
+Imports inside `core/` carry explicit `.ts` extensions: Node's type stripping
+resolves ESM specifiers literally. Turbopack and `tsc` both handle it.
