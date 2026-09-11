@@ -11,7 +11,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { noteToFrequency } from "@/core/music/frequency.ts";
 import type { Tuning } from "@/core/music/types.ts";
 import { windowSizeFor } from "@/core/audio/detect-pitch.ts";
-import { nearestString, searchRange, targetString } from "@/core/tunings/target.ts";
+import { searchRange, targetString, trackString } from "@/core/tunings/target.ts";
 import type { StringTarget } from "@/core/tunings/target.ts";
 
 import { Headstock } from "./Headstock";
@@ -43,6 +43,8 @@ export function MicMode({ tuning, reference }: MicModeProps) {
 
   const listener = useRef<Listener | null>(null);
   const history = useRef<number[]>([]);
+  /** The string the last reading was attributed to. See `trackString`. */
+  const following = useRef<number | null>(null);
   const clearTimer = useRef<number | null>(null);
 
   // The reading handler is created once and installed on the worklet port,
@@ -58,6 +60,7 @@ export function MicMode({ tuning, reference }: MicModeProps) {
     listener.current?.stop();
     listener.current = null;
     history.current = [];
+    following.current = null;
     if (clearTimer.current !== null) window.clearTimeout(clearTimer.current);
     clearTimer.current = null;
     setTarget(null);
@@ -85,13 +88,19 @@ export function MicMode({ tuning, reference }: MicModeProps) {
     const { tuning: current, reference: pitch, locked: held } = live.current;
     const found =
       held === null
-        ? nearestString(hz, current.strings, pitch)
+        ? trackString(hz, current.strings, following.current, pitch)
         : targetString(hz, current.strings, held, pitch);
-    if (found) setTarget(found);
+    if (found) {
+      following.current = found.index;
+      setTarget(found);
+    }
 
     if (clearTimer.current !== null) window.clearTimeout(clearTimer.current);
     clearTimer.current = window.setTimeout(() => {
       history.current = [];
+      // Forget which string we were following too: after a silence, the next
+      // pluck is as likely to be a different string as the same one.
+      following.current = null;
       setTarget(null);
     }, HOLD_MS);
   }, []);
@@ -132,6 +141,7 @@ export function MicMode({ tuning, reference }: MicModeProps) {
       windowSize: windowSizeFor(minHz, 48000),
     });
     history.current = [];
+    following.current = null;
   }, [reference, tuning]);
 
   const listening = status === "listening";
@@ -147,6 +157,7 @@ export function MicMode({ tuning, reference }: MicModeProps) {
       <Needle
         note={target?.note ?? null}
         cents={target?.cents ?? null}
+        stringNumber={target ? 6 - target.index : null}
         live={listening}
       />
 

@@ -11,7 +11,12 @@
 
 import { formatNote } from "@/core/music/notes.ts";
 import type { Note } from "@/core/music/types.ts";
-import { IN_TUNE_CENTS, verdictFor } from "@/core/tunings/target.ts";
+import {
+  IN_TUNE_CENTS,
+  isAmbiguous,
+  semitonesOff,
+  verdictFor,
+} from "@/core/tunings/target.ts";
 
 /** Everything past this reads as "a long way off" rather than as a distance. */
 const SCALE_CENTS = 50;
@@ -19,15 +24,21 @@ const SCALE_CENTS = 50;
 export interface NeedleProps {
   note: Note | null;
   cents: number | null;
+  /** 1 (high E) to 6 (low E), so the player can check it picked the right one. */
+  stringNumber: number | null;
   /** True while a usable signal is arriving. */
   live: boolean;
 }
 
-export function Needle({ note, cents, live }: NeedleProps) {
+export function Needle({ note, cents, stringNumber, live }: NeedleProps) {
   const clamped =
     cents === null ? 0 : Math.max(-SCALE_CENTS, Math.min(SCALE_CENTS, cents));
   const verdict = cents === null ? null : verdictFor(cents);
   const inTune = verdict === "in-tune";
+  // A long way from the target means we cannot be sure this is even the
+  // right string, and a bare "tighten" at that distance is how strings get
+  // broken. Say what it thinks, and ask.
+  const unsure = cents !== null && isAmbiguous(cents);
 
   return (
     <section
@@ -35,6 +46,10 @@ export function Needle({ note, cents, live }: NeedleProps) {
       aria-live="polite"
       aria-label="Tuning meter"
     >
+      <p className="text-center text-xs uppercase tracking-widest text-ink-faint">
+        {stringNumber === null ? "\u00a0" : `String ${stringNumber}`}
+      </p>
+
       <div className="flex items-baseline justify-center gap-3">
         <span
           className={`font-mono text-5xl tabular-nums transition-colors ${
@@ -80,14 +95,27 @@ export function Needle({ note, cents, live }: NeedleProps) {
         )}
       </div>
 
-      <p className="text-center text-sm text-ink-muted">
-        {cents === null
-          ? "Play a string."
-          : inTune
-            ? "In tune."
-            : verdict === "flat"
-              ? "Flat — tighten."
-              : "Sharp — loosen."}
+      <p
+        className={`text-center text-sm ${
+          unsure ? "text-accent-bright" : "text-ink-muted"
+        }`}
+      >
+        {cents === null ? (
+          "Play a string."
+        ) : unsure ? (
+          <>
+            {Math.abs(semitonesOff(cents)).toFixed(1)} semitones{" "}
+            {verdict === "flat" ? "below" : "above"} {note ? formatNote(note) : ""}.
+            <br />
+            Check you are on string {stringNumber} before turning.
+          </>
+        ) : inTune ? (
+          "In tune."
+        ) : verdict === "flat" ? (
+          "Flat — tighten."
+        ) : (
+          "Sharp — loosen."
+        )}
       </p>
     </section>
   );

@@ -1,15 +1,19 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { formatNote, parseNote } from "../music/notes.ts";
+import { formatNote, midiOf, parseNote } from "../music/notes.ts";
 import { noteToFrequency } from "../music/frequency.ts";
-import { findPreset } from "./presets.ts";
+import { PRESETS, findPreset } from "./presets.ts";
 import { resolveShape } from "./resolve.ts";
 import {
+  AMBIGUOUS_CENTS,
   IN_TUNE_CENTS,
+  isAmbiguous,
   nearestString,
   searchRange,
+  semitonesOff,
   targetString,
+  trackString,
   verdictFor,
 } from "./target.ts";
 
@@ -89,4 +93,92 @@ test("the search range follows the tuning and the reference pitch", () => {
   const dropB = resolveShape(findPreset("drop-b")!).strings;
   assert.ok(searchRange(dropB).minHz < searchRange(standard).minHz);
   assert.ok(searchRange(standard, 432).minHz < searchRange(standard, 440).minHz);
+});
+
+test("a sharp string is never mistaken for the next string up", () => {
+  /*
+   * The bug that broke a D string. Tuning up past D3, the nearest string
+   * becomes G3 at about three semitones sharp, and a memoryless tuner then
+   * says "flat — tighten" and points at 196 Hz. Following the string already
+   * being tuned means it keeps saying "sharp" instead.
+   */
+  const d3 = noteToFrequency(standard[2]);
+  for (const semitones of [1, 2, 2.5, 3, 3.5, 4, 4.5]) {
+    const hz = d3 * 2 ** (semitones / 12);
+    const tracked = trackString(hz, standard, 2);
+    assert.equal(tracked?.index, 2, `${semitones} semitones sharp of D3`);
+    assert.equal(
+      verdictFor(tracked!.cents),
+      "sharp",
+      `${semitones} semitones sharp must read as sharp, never as flat`,
+    );
+  }
+});
+
+test("every string is safe from its neighbours, in every preset", () => {
+  // Not just the D: the same trap sits between every adjacent pair, and the
+  // gap varies — Major Thirds puts its strings only four semitones apart.
+  // A memoryless tuner flips at half the gap, so that is what is swept.
+  for (const preset of PRESETS) {
+    const strings = resolveShape(preset).strings;
+    strings.forEach((note, index) => {
+      const next = strings[index + 1];
+      if (!next) return;
+      const gap = midiOf(next) - midiOf(note);
+      if (gap === 0) return; // Unison strings are genuinely indistinguishable.
+      const base = noteToFrequency(note);
+      for (let semitones = 0.5; semitones <= gap * 0.75; semitones += 0.5) {
+        const tracked = trackString(base * 2 ** (semitones / 12), strings, index);
+        assert.notEqual(
+          verdictFor(tracked!.cents),
+          "flat",
+          `${preset.id} string ${index} sharp by ${semitones} told to tighten`,
+        );
+      }
+    });
+  }
+});
+
+test("a slack string is still told to tighten, towards its own note", () => {
+  // The safeguard must not break the ordinary case of bringing a loose
+  // string up to pitch.
+  const d3 = noteToFrequency(standard[2]);
+  for (const semitones of [1, 2, 3, 4]) {
+    const tracked = trackString(d3 * 2 ** (-semitones / 12), standard, 2);
+    assert.equal(tracked?.index, 2);
+    assert.equal(verdictFor(tracked!.cents), "flat", "should say tighten");
+  }
+});
+
+test("it does follow you when you genuinely change string", () => {
+  // Stickiness must not mean stubbornness: playing another string plainly
+  // should move the target.
+  standard.forEach((note, index) => {
+    const tracked = trackString(noteToFrequency(note), standard, 2);
+    assert.equal(tracked?.index, index, `playing ${formatNote(note)} in tune`);
+  });
+});
+
+test("with no previous string it simply picks the nearest", () => {
+  const a2 = noteToFrequency(standard[1]);
+  assert.equal(trackString(a2, standard, null)?.index, 1);
+  assert.deepEqual(trackString(a2, standard, null), nearestString(a2, standard));
+  assert.equal(trackString(0, standard, 2), null);
+});
+
+test("a previous string that no longer exists is ignored", () => {
+  // Switching to a tuning with the same string count keeps indexes valid,
+  // but a stale index from somewhere else must not crash or stick.
+  const a2 = noteToFrequency(standard[1]);
+  assert.equal(trackString(a2, standard, 99)?.index, 1);
+});
+
+test("far-off readings are flagged rather than stated confidently", () => {
+  assert.equal(isAmbiguous(0), false);
+  assert.equal(isAmbiguous(-100), false);
+  assert.equal(isAmbiguous(AMBIGUOUS_CENTS), false);
+  assert.equal(isAmbiguous(AMBIGUOUS_CENTS + 1), true);
+  assert.equal(isAmbiguous(-300), true);
+  assert.equal(semitonesOff(300), 3);
+  assert.equal(semitonesOff(-50), -0.5);
 });
