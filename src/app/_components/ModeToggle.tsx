@@ -4,14 +4,18 @@
  * Mode switch.
  *
  * The labels are "Custom" and "Auto" because that is what guitarists using
- * other tuners expect. The code never uses those words — see AGENTS.md.
+ * other tuners expect. The code never uses those words: "custom" also reads
+ * like "user-defined tuning", which is a different feature entirely.
+ *
+ * Both modes have the microphone and the reference tone. The only difference
+ * is how the string being tuned is chosen. See AGENTS.md.
  */
 
-export type Mode = "ear" | "mic";
+export type Mode = "manual" | "follow";
 
 const MODES: ReadonlyArray<{ mode: Mode; label: string; hint: string }> = [
-  { mode: "ear", label: "Custom", hint: "Hear the pitch and tune by ear" },
-  { mode: "mic", label: "Auto", hint: "Play, and the needle shows the way" },
+  { mode: "manual", label: "Custom", hint: "You choose the string" },
+  { mode: "follow", label: "Auto", hint: "It follows whatever you play" },
 ];
 
 export interface ModeToggleProps {

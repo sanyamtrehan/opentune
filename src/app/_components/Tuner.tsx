@@ -14,11 +14,10 @@ import { PRESETS, findPreset } from "@/core/tunings/presets.ts";
 import { resolveShape } from "@/core/tunings/resolve.ts";
 import { newTuningId, userTuning } from "@/core/tunings/custom.ts";
 
-import { EarMode } from "./EarMode";
-import { MicMode } from "./MicMode";
 import { ModeToggle } from "./ModeToggle";
 import type { Mode } from "./ModeToggle";
 import { Header } from "./Header";
+import { TuningStage } from "./TuningStage";
 import { TuningEditor } from "./TuningEditor";
 import { TuningSheet } from "./TuningSheet";
 import { stop } from "../_audio/pluck-voice";
@@ -31,7 +30,7 @@ import {
 } from "../_storage/saved-tunings";
 
 export function Tuner() {
-  const [mode, setMode] = useState<Mode>("ear");
+  const [mode, setMode] = useState<Mode>("manual");
   const [tuningId, setTuningId] = useState("standard");
   const [reference, setReference] = useState<number>(A440);
   const [editing, setEditing] = useState(false);
@@ -106,12 +105,8 @@ export function Tuner() {
         </button>
       </div>
 
-      <div className="flex min-h-0 w-full flex-1 flex-col overflow-y-auto px-[clamp(1rem,4vw,1.75rem)]">
-        {mode === "ear" ? (
-          <EarMode key="ear" tuning={tuning} reference={reference} />
-        ) : (
-          <MicMode key="mic" tuning={tuning} reference={reference} />
-        )}
+      <div className="flex min-h-0 w-full flex-1 flex-col">
+        <TuningStage tuning={tuning} reference={reference} mode={mode} />
 
         {editing && (
           <div className="mt-4">
