@@ -69,7 +69,7 @@ export function Needle({ note, cents, stringNumber, live }: NeedleProps) {
         {/* Track, with the in-tune band drawn on it so the target has width. */}
         <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-edge" />
         <div
-          className="absolute top-1/2 h-8 -translate-y-1/2 rounded-sm border-x border-accent-dim bg-accent-dim/20"
+          className="absolute top-1/2 h-8 -translate-y-1/2 rounded-sm border-x border-accent-edge bg-accent-bg"
           style={{
             left: `${50 - (IN_TUNE_CENTS / SCALE_CENTS) * 50}%`,
             width: `${(IN_TUNE_CENTS / SCALE_CENTS) * 100}%`,

@@ -1,28 +1,49 @@
 @import "tailwindcss";
 
 /*
- * Dark and warm on purpose: the stated use case is a phone held at arm's
- * length in a dim rehearsal room. Amber is the only accent — it marks the one
- * string currently sounding, and nothing else is allowed to compete with it.
+ * Palette and type for the v2 design. See docs/DESIGN.md for the reasoning
+ * and the full contract; this file is only the values.
+ *
+ * Warm dark, because the app gets used on a phone at arm's length in a dim
+ * rehearsal room. Three state colours and no more: amber is the string being
+ * tuned, green is a string that is done, red means we cannot tell which
+ * string we are hearing. Nothing else on the screen may use them.
  */
 @theme {
-  --color-ground: #0c0a09;
-  --color-panel: #1c1917;
-  --color-edge: #292524;
-  --color-ink: #fafaf9;
-  --color-ink-muted: #a8a29e;
-  --color-ink-faint: #57534e;
+  --color-ground: #0a0a0a;
+  --color-panel: #141414;
+  --color-panel-raised: #181818;
+  --color-panel-input: #171717;
+  --color-edge: #232323;
+  --color-edge-strong: #2b2b2b;
 
-  --color-accent: #f59e0b;
-  --color-accent-bright: #fbbf24;
-  --color-accent-dim: #78350f;
+  --color-ink: #f2f2f2;
+  --color-ink-muted: #8a8a8a;
+  --color-ink-faint: #6e6e6e;
+  --color-ink-ghost: #565656;
 
-  --color-wood: #1f1a17;
-  --color-wood-edge: #3a2f28;
-  --color-string: #6b6660;
+  --color-accent: #f5a623;
+  --color-accent-bright: #ffc05c;
+  --color-accent-bg: #2a1c06;
+  --color-accent-edge: #5a3e0c;
 
-  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --color-tuned: #3fbf7f;
+  --color-tuned-bg: #11291d;
+  --color-tuned-edge: #1f5c3c;
+
+  --color-warn: #e0714a;
+
+  /* Headstock woods and hardware, used inside the SVG gradients. */
+  --color-wood-light: #5a4130;
+  --color-wood-mid: #3a2a1c;
+  --color-wood-dark: #211710;
+  --color-wood-edge: #6a4e38;
+  --color-board: #241a12;
+  --color-nut: #efe9de;
+  --color-string: #b9b4ac;
+
+  --font-sans: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 }
 
 html {
@@ -30,26 +51,38 @@ html {
 }
 
 body {
-  background: var(--color-ground);
+  /* Not a flat ground: a warm bloom behind the headstock, fading to black at
+     the edges, which is what stops the screen reading as a form. */
+  background: radial-gradient(130% 70% at 50% 8%, #16130f 0%, #0a0a0a 65%);
+  background-attachment: fixed;
   color: var(--color-ink);
 }
 
-/* The glow on a sounding peg. Kept here so the timing is stated once. */
-@keyframes ring {
+/* Section labels, used often enough to be worth naming. */
+.label-caps {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+@keyframes sheet-rise {
   from {
-    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-accent) 55%, transparent);
+    opacity: 0;
+    transform: translateY(12px);
   }
   to {
-    box-shadow: 0 0 0 18px transparent;
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-.peg-ringing {
-  animation: ring 1.4s ease-out infinite;
+.sheet-rise {
+  animation: sheet-rise 180ms ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .peg-ringing {
+  .sheet-rise {
     animation: none;
   }
 }

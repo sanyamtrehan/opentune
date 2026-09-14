@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="a0b8d955-c337-4831-bd14-3c91acb40996"></script>
+
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<style></style>
+<style>
+  html, body { margin:0; padding:0; background:#0A0A0A; color:#F2F2F2; font-family:'Space Grotesk', system-ui, sans-serif; -webkit-font-smoothing:antialiased; overflow:hidden; }
+  * { box-sizing:border-box; }
+  a { color:#F5A623; text-decoration:none; }
+  a:hover { color:#FFC05C; }
+  @keyframes otRise { from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:translateY(0)} }
+</style>
+</helmet>
+<div style="height:100dvh; width:100%; display:flex; flex-direction:column; background:radial-gradient(130% 70% at 50% 8%, #16130F 0%, #0A0A0A 65%); overflow:hidden; position:relative">
+
+  <header style="display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px clamp(16px,4vw,28px) 8px; flex:none">
+    <div style="display:flex; align-items:baseline; gap:10px">
+      <span style="font-size:20px; font-weight:700; letter-spacing:-0.02em">OpenTune</span>
+      <span style="font-size:10px; letter-spacing:0.18em; color:#8F8F8F; text-transform:uppercase">every tuning, free</span>
+    </div>
+    <nav style="display:flex; gap:4px; background:#141414; border:1px solid #232323; border-radius:999px; padding:3px">
+      <span style="font-size:12px; font-weight:500; padding:6px 14px; border-radius:999px; background:#2A1C06; color:#F5A623">Tuner</span>
+      <span style="font-size:12px; padding:6px 12px; border-radius:999px; color:#565656">Chords</span>
+      <span style="font-size:12px; padding:6px 12px; border-radius:999px; color:#565656">My Chords</span>
+    </nav>
+  </header>
+
+  <div style="display:flex; align-items:center; gap:10px; padding:0 clamp(16px,4vw,28px) 6px; flex:none; width:100%; max-width:620px; margin:0 auto">
+    <div style="display:flex; background:#141414; border:1px solid #232323; border-radius:12px; padding:3px; flex:none">
+      <button sc-camel-on-click="{{ setCustom }}" style="{{ customTabStyle }}">Custom</button>
+      <button sc-camel-on-click="{{ setAuto }}" style="{{ autoTabStyle }}">Auto</button>
+    </div>
+    <button sc-camel-on-click="{{ openSheet }}" style="flex:1; min-width:0; display:flex; align-items:center; justify-content:space-between; gap:10px; background:#141414; border:1px solid #232323; border-radius:12px; padding:9px 14px; color:#F2F2F2; font-size:14px; cursor:pointer; text-align:left">
+      <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ tuningName }}</span>
+      <span style="font-family:'JetBrains Mono', monospace; font-size:11px; color:#6E6E6E; flex:none; white-space:nowrap">A4 {{ a4 }} ▾</span>
+    </button>
+  </div>
+
+  <div style="{{ mainStyle }}">
+  <div style="{{ stageStyle }}">
+    <div style="position:relative; height:100%; width:auto; max-height:100%; aspect-ratio:360 / 540; max-width:100%">
+      <svg sc-camel-view-box="0 0 360 540" style="height:100%; width:100%; display:block" sc-camel-preserve-aspect-ratio="xMidYMid meet">
+        <defs>
+          <linearGradient id="v2wood" x1="0.1" y1="0" x2="0.9" y2="1">
+            <stop offset="0%" stop-color="#5A4130"></stop><stop offset="45%" stop-color="#3A2A1C"></stop><stop offset="100%" stop-color="#211710"></stop>
+          </linearGradient>
+          <linearGradient id="v2board" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#241A12"></stop><stop offset="50%" stop-color="#31231816"></stop><stop offset="100%" stop-color="#1B120C"></stop>
+          </linearGradient>
+          <linearGradient id="v2fade" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0A0A0A" stop-opacity="0"></stop><stop offset="100%" stop-color="#0A0A0A" stop-opacity="1"></stop>
+          </linearGradient>
+          <linearGradient id="v2metal" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#D8D8D8"></stop><stop offset="55%" stop-color="#8E8E8E"></stop><stop offset="100%" stop-color="#5C5C5C"></stop>
+          </linearGradient>
+        </defs>
+
+        <path d="M74.7 91.7 A112 112 0 0 1 285.3 91.7" fill="none" stroke="#1F1F1F" stroke-width="2"></path>
+        <path d="M166.3 18.8 A112 112 0 0 1 193.7 18.8" fill="none" stroke="#2C5943" stroke-width="5"></path>
+        <g stroke="#3C3C3C" stroke-width="1.6">
+          <line x1="87.2" y1="67.4" x2="100.4" y2="76.3"></line><line x1="272.8" y1="67.4" x2="259.6" y2="76.3"></line>
+          <line x1="127.4" y1="31.1" x2="134.9" y2="45.2"></line><line x1="232.6" y1="31.1" x2="225.1" y2="45.2"></line>
+          <line x1="152.9" y1="21.3" x2="156.8" y2="36.8"></line><line x1="207.1" y1="21.3" x2="203.2" y2="36.8"></line>
+        </g>
+        <g stroke="#5A5A5A" stroke-width="2.4">
+          <line x1="74.7" y1="91.7" x2="89.8" y2="97.2"></line><line x1="285.3" y1="91.7" x2="270.2" y2="97.2"></line>
+          <line x1="105.1" y1="46.8" x2="115.8" y2="58.7"></line><line x1="254.9" y1="46.8" x2="244.2" y2="58.7"></line>
+        </g>
+        <line x1="180" y1="18" x2="180" y2="36" stroke="#4C7C63" stroke-width="2.4"></line>
+        <text x="62" y="114" fill="#9A9A9A" font-family="JetBrains Mono, monospace" font-size="13">−50</text>
+        <text x="270" y="114" fill="#9A9A9A" font-family="JetBrains Mono, monospace" font-size="13">+50</text>
+
+        <path d="M180 536 L172 408 C172 402 176 398 182 398 L178 398 C184 398 188 402 188 408 Z" fill="none"></path>
+        <path d="M118 540 L126 404 L234 404 L242 540 Z" fill="url(#v2board)"></path>
+        <g stroke="#4A4A4A" stroke-width="2" opacity="0.65">
+          <line x1="123" y1="452" x2="237" y2="452"></line><line x1="121" y1="496" x2="239" y2="496"></line>
+        </g>
+        <path d="M115 214 C115 158 138 126 180 126 C222 126 245 158 245 214 L243 384 C243 396 236 402 226 402 L134 402 C124 402 117 396 117 384 Z" fill="url(#v2wood)"></path>
+        <path d="M115 214 C115 158 138 126 180 126 C222 126 245 158 245 214 L243 384 C243 396 236 402 226 402 L134 402 C124 402 117 396 117 384 Z" fill="none" stroke="#6A4E38" stroke-width="1" opacity="0.5"></path>
+        <path d="M140 150 C150 210 148 300 146 392" fill="none" stroke="#2A1D14" stroke-width="2" opacity="0.5"></path>
+        <path d="M212 148 C204 214 208 302 212 392" fill="none" stroke="#2A1D14" stroke-width="2" opacity="0.45"></path>
+        <rect x="122" y="396" width="116" height="11" rx="3.5" fill="#EFE9DE"></rect>
+
+        <sc-for list="{{ strings }}" as="s" hint-placeholder-count="6">
+          <path d="{{ s.path }}" fill="none" stroke="{{ s.stroke }}" stroke-width="{{ s.width }}" stroke-linecap="round" opacity="{{ s.op }}"></path>
+        </sc-for>
+        <sc-for list="{{ posts }}" as="p" hint-placeholder-count="6">
+          <g>
+            <rect x="{{ p.barX }}" y="{{ p.barY }}" width="26" height="7" rx="3.5" fill="url(#v2metal)"></rect>
+            <ellipse cx="{{ p.postX }}" cy="{{ p.cy }}" rx="9" ry="9.5" fill="url(#v2metal)" stroke="#4A4A4A" stroke-width="1.2"></ellipse>
+            <circle cx="{{ p.postX }}" cy="{{ p.cy }}" r="3.4" fill="#3A3A3A"></circle>
+          </g>
+        </sc-for>
+
+        <rect x="104" y="454" width="152" height="86" fill="url(#v2fade)"></rect>
+        <g ref="{{ needleRef }}" style="transform-box:view-box; transform-origin:180px 130px; transition:transform 90ms linear">
+          <line x1="180" y1="130" x2="180" y2="40" stroke="#F5A623" stroke-width="3" stroke-linecap="round"></line>
+          <circle cx="180" cy="42" r="4" fill="#F5A623"></circle>
+        </g>
+        <circle cx="180" cy="130" r="11" fill="#120E09" stroke="#4A3A24" stroke-width="2"></circle>
+        <circle cx="180" cy="130" r="3.5" fill="#F5A623"></circle>
+      </svg>
+
+      <sc-for list="{{ pegs }}" as="p" hint-placeholder-count="6">
+        <button ref="{{ p.ref }}" sc-camel-on-click="{{ p.onSelect }}" style="{{ p.btnStyle }}">
+          <span style="font-size:clamp(14px, 2.2vh, 20px); font-weight:500; line-height:1; color:inherit">{{ p.note }}</span>
+          <span style="font-family:'JetBrains Mono', monospace; font-size:9px; letter-spacing:0.08em; line-height:1; color:inherit">{{ p.state }}</span>
+        </button>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="{{ asideStyle }}">
+  <div style="flex:none; text-align:center; padding:2px clamp(16px,4vw,28px) 0; min-height:min(52px, 8vh)">
+    <div ref="{{ noteRef }}" style="font-size:24px; font-weight:700; letter-spacing:-0.01em; line-height:1.2">—</div>
+    <div ref="{{ hintRef }}" style="font-size:13px; color:#8A8A8A; margin-top:1px">Tap a peg to begin.</div>
+  </div>
+
+  <div style="flex:none; display:flex; flex-direction:column; gap:8px; width:100%; max-width:560px; margin:0 auto; padding:8px clamp(16px,4vw,28px) max(14px, env(safe-area-inset-bottom))">
+    <div style="display:flex; align-items:center; justify-content:center; gap:7px">
+      <sc-for list="{{ dots }}" as="d" hint-placeholder-count="6">
+        <span style="{{ d.style }}"></span>
+      </sc-for>
+    </div>
+    <div style="display:flex; gap:8px">
+      <button sc-camel-on-click="{{ toggleMic }}" style="{{ micStyle }}">{{ micLabel }}</button>
+      <button sc-camel-on-click="{{ playRef }}" style="{{ refStyle }}">{{ refLabel }}</button>
+    </div>
+  </div>
+  </div>
+  </div>
+
+  <sc-if value="{{ sheetOpen }}" hint-placeholder-val="{{ false }}">
+    <div sc-camel-on-click="{{ closeSheet }}" style="position:absolute; inset:0; background:rgba(5,5,5,0.74); backdrop-filter:blur(6px); display:flex; align-items:flex-end; justify-content:center; z-index:20">
+      <div sc-camel-on-click="{{ stop }}" style="width:100%; max-width:520px; max-height:88%; overflow:auto; background:#111111; border:1px solid #242424; border-radius:22px 22px 0 0; padding:18px 18px 22px; animation:otRise 180ms ease-out">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px">
+          <span style="font-size:16px; font-weight:700">Tunings</span>
+          <button sc-camel-on-click="{{ closeSheet }}" style="background:none; border:none; color:#8A8A8A; font-size:20px; cursor:pointer; line-height:1">✕</button>
+        </div>
+        <input value="{{ query }}" sc-camel-on-change="{{ onQuery }}" placeholder="Search tunings — name or notes" style="width:100%; padding:11px 13px; margin-bottom:14px; border-radius:11px; border:1px solid #232323; background:#171717; color:#F2F2F2; font-family:inherit; font-size:14px; outline:none">
+        <sc-for list="{{ tuningGroups }}" as="g" hint-placeholder-count="4">
+          <div style="{{ g.style }}">
+            <div style="font-size:10px; letter-spacing:0.18em; color:#8F8F8F; text-transform:uppercase; margin:14px 0 8px">{{ g.name }}</div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px">
+              <sc-for list="{{ g.items }}" as="t" hint-placeholder-count="6">
+                <button sc-camel-on-click="{{ t.onPick }}" style="{{ t.style }}">
+                  <span style="display:block; font-size:14px">{{ t.name }}</span>
+                  <span style="display:block; font-family:'JetBrains Mono', monospace; font-size:10px; color:#8A8A8A; margin-top:3px; letter-spacing:0.06em">{{ t.notes }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+        <div style="font-size:10px; letter-spacing:0.18em; color:#6E6E6E; text-transform:uppercase; margin:20px 0 8px">A4 reference</div>
+        <div style="display:flex; gap:8px">
+          <sc-for list="{{ refs }}" as="r" hint-placeholder-count="4">
+            <button sc-camel-on-click="{{ r.onPick }}" style="{{ r.style }}">{{ r.hz }}</button>
+          </sc-for>
+        </div>
+        <button sc-camel-on-click="{{ closeSheet }}" style="width:100%; margin-top:18px; padding:14px; border-radius:12px; border:1px dashed #2E2E2E; background:none; color:#7A7A7A; font-size:14px; cursor:pointer">Build your own — coming soon</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:900}}">
+const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+function noteToFreq(name, a4) {
+  const m = /^([A-G]#?)(-?\d)$/.exec(name);
+  const semis = NOTE_NAMES.indexOf(m[1]) + (parseInt(m[2], 10) + 1) * 12;
+  return a4 * Math.pow(2, (semis - 69) / 12);
+}
+const TUNINGS = [
+  { g: 'Standard', name: 'Standard', notes: ['E2','A2','D3','G3','B3','E4'] },
+  { g: 'Standard', name: 'Eb Standard', notes: ['D#2','G#2','C#3','F#3','A#3','D#4'] },
+  { g: 'Standard', name: 'D Standard', notes: ['D2','G2','C3','F3','A3','D4'] },
+  { g: 'Standard', name: 'C# Standard', notes: ['C#2','F#2','B2','E3','G#3','C#4'] },
+  { g: 'Standard', name: 'C Standard', notes: ['C2','F2','A#2','D#3','G3','C4'] },
+  { g: 'Standard', name: 'B Standard', notes: ['B1','E2','A2','D3','F#3','B3'] },
+  { g: 'Standard', name: 'Bb Standard', notes: ['A#1','D#2','G#2','C#3','F3','A#3'] },
+  { g: 'Standard', name: 'A Standard', notes: ['A1','D2','G2','C3','E3','A3'] },
+  { g: 'Drop', name: 'Drop D', notes: ['D2','A2','D3','G3','B3','E4'] },
+  { g: 'Drop', name: 'Drop C#', notes: ['C#2','G#2','C#3','F#3','A#3','D#4'] },
+  { g: 'Drop', name: 'Drop C', notes: ['C2','G2','C3','F3','A3','D4'] },
+  { g: 'Drop', name: 'Drop B', notes: ['B1','F#2','B2','E3','G#3','C#4'] },
+  { g: 'Drop', name: 'Drop Bb', notes: ['A#1','F2','A#2','D#3','G3','C4'] },
+  { g: 'Drop', name: 'Drop A', notes: ['A1','E2','A2','D3','F#3','B3'] },
+  { g: 'Drop', name: 'Double Drop D', notes: ['D2','A2','D3','G3','B3','D4'] },
+  { g: 'Drop', name: 'Double Drop C', notes: ['C2','G2','C3','F3','A3','C4'] },
+  { g: 'Open & modal', name: 'DADGAD', notes: ['D2','A2','D3','G3','A3','D4'] },
+  { g: 'Open & modal', name: 'CGCFGC', notes: ['C2','G2','C3','F3','G3','C4'] },
+  { g: 'Open & modal', name: 'Open D', notes: ['D2','A2','D3','F#3','A3','D4'] },
+  { g: 'Open & modal', name: 'Open E', notes: ['E2','B2','E3','G#3','B3','E4'] },
+  { g: 'Open & modal', name: 'Open D Minor', notes: ['D2','A2','D3','F3','A3','D4'] },
+  { g: 'Open & modal', name: 'Open E Minor', notes: ['E2','B2','E3','G3','B3','E4'] },
+  { g: 'Open & modal', name: 'Open G', notes: ['D2','G2','D3','G3','B3','D4'] },
+  { g: 'Open & modal', name: 'Open A', notes: ['E2','A2','C#3','E3','A3','E4'] },
+  { g: 'Open & modal', name: 'Open F', notes: ['C2','F2','C3','F3','A3','F4'] },
+  { g: 'Open & modal', name: 'Open G Minor', notes: ['D2','G2','D3','G3','A#3','D4'] },
+  { g: 'Open & modal', name: 'Open A Minor', notes: ['E2','A2','E3','A3','C4','E4'] },
+  { g: 'Open & modal', name: 'Open C', notes: ['C2','G2','C3','G3','C4','E4'] },
+  { g: 'Other', name: 'All Fourths', notes: ['E2','A2','D3','G3','C4','F4'] },
+  { g: 'Other', name: 'New Standard', notes: ['C2','G2','D3','A3','E4','G4'] },
+  { g: 'Other', name: 'Major Thirds', notes: ['E2','G#2','C3','E3','G#3','C4'] },
+  { g: 'Other', name: 'Bass 4-string', notes: ['E1','A1','D2','G2'], soon: true },
+  { g: 'Other', name: 'Custom', notes: [], soon: true }
+];
+const GROUPS = ['Standard', 'Drop', 'Open & modal', 'Other'];
+// index 0..5 = low E .. high E. cy on the headstock, nut slot x, tuner side.
+const GEO = [
+  { side: 'L', cy: 344, nut: 136 },
+  { side: 'L', cy: 272, nut: 153 },
+  { side: 'L', cy: 200, nut: 170 },
+  { side: 'R', cy: 200, nut: 190 },
+  { side: 'R', cy: 272, nut: 207 },
+  { side: 'R', cy: 344, nut: 224 }
+];
+const GAUGE = [3.0, 2.6, 2.2, 1.8, 1.5, 1.2];
+
+function autoCorrelate(buf, sampleRate) {
+  const SIZE = buf.length;
+  let rms = 0;
+  for (let i = 0; i < SIZE; i++) rms += buf[i] * buf[i];
+  rms = Math.sqrt(rms / SIZE);
+  if (rms < 0.012) return -1;
+  let r1 = 0, r2 = SIZE - 1;
+  for (let i = 0; i < SIZE / 2; i++) if (Math.abs(buf[i]) < 0.2) { r1 = i; break; }
+  for (let i = 1; i < SIZE / 2; i++) if (Math.abs(buf[SIZE - i]) < 0.2) { r2 = SIZE - i; break; }
+  const b = buf.slice(r1, r2), n = b.length, c = new Float32Array(n).fill(0);
+  for (let i = 0; i < n; i++) for (let j = 0; j < n - i; j++) c[i] += b[j] * b[j + i];
+  let d = 0;
+  while (d < n - 1 && c[d] > c[d + 1]) d++;
+  let maxval = -1, maxpos = -1;
+  for (let i = d; i < n; i++) if (c[i] > maxval) { maxval = c[i]; maxpos = i; }
+  let T0 = maxpos;
+  if (T0 <= 0) return -1;
+  const x1 = c[T0 - 1], x2 = c[T0], x3 = c[T0 + 1] || 0;
+  const a = (x1 + x3 - 2 * x2) / 2, bb = (x3 - x1) / 2;
+  if (a) T0 = T0 - bb / (2 * a);
+  const f = sampleRate / T0;
+  return (f > 55 && f < 1200) ? f : -1;
+}
+
+class Component extends DCLogic {
+  state = { mode: 'custom', tuningIdx: 0, a4: 440, selected: 0, tuned: [], sheetOpen: false, listening: false, wide: typeof window !== 'undefined' && window.innerWidth >= 780 };
+
+  componentDidMount() {
+    this.onResize = () => {
+      const w = window.innerWidth >= 780;
+      if (w !== this.state.wide) this.setState({ wide: w });
+    };
+    window.addEventListener('resize', this.onResize);
+    this.paintPegs();
+  }
+
+  componentDidUpdate() { this.paintPegs(); }
+
+  paintPegs() {
+    const s = this.state;
+    this.pegRefs.forEach((r, i) => {
+      const el = r.current;
+      if (!el) return;
+      const isTuned = s.tuned.includes(i), isSel = s.selected === i;
+      const ring = isTuned ? '#3FBF7F' : (isSel ? '#F5A623' : '#2B2B2B');
+      el.style.borderColor = ring;
+      el.style.borderWidth = isTuned || isSel ? '2.5px' : '1.5px';
+      el.style.backgroundColor = isSel ? (isTuned ? '#11291D' : '#2A1C06') : '#181818';
+      el.style.boxShadow = isTuned || isSel ? '0 0 22px -6px ' + ring : '0 0 0 0 rgba(0,0,0,0)';
+      el.style.color = isTuned ? '#3FBF7F' : (isSel ? '#F5A623' : '#C9C9C9');
+    });
+  }
+  needleRef = React.createRef();
+  pegRefs = [0, 1, 2, 3, 4, 5].map(() => React.createRef());
+  noteRef = React.createRef();
+  hintRef = React.createRef();
+  inTuneSince = 0;
+  lastCents = 0;
+
+  targets() {
+    return TUNINGS[this.state.tuningIdx].notes.map(n => ({ note: n, freq: noteToFreq(n, this.state.a4) }));
+  }
+  componentWillUnmount() { this.stopMic(); window.removeEventListener('resize', this.onResize); }
+
+  async toggleMic() {
+    if (this.state.listening) return this.stopMic();
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const an = ctx.createAnalyser();
+      an.fftSize = 2048;
+      ctx.createMediaStreamSource(stream).connect(an);
+      this.audio = { ctx, stream, an, buf: new Float32Array(an.fftSize) };
+      this.setState({ listening: true }, () => this.loop());
+    } catch (e) { this.setHint('Mic blocked — allow microphone access.', '#E0714A'); }
+  }
+  stopMic() {
+    if (this.raf) cancelAnimationFrame(this.raf);
+    if (this.audio) { this.audio.stream.getTracks().forEach(t => t.stop()); this.audio.ctx.close(); this.audio = null; }
+    if (this.state.listening) this.setState({ listening: false });
+    this.setNeedle(0);
+    this.setReadout('—', 'Tap a peg to begin.', '#8A8A8A');
+  }
+  setNeedle(cents) {
+    const g = this.needleRef.current;
+    if (g) g.style.transform = 'rotate(' + Math.max(-70, Math.min(70, cents * 1.4)) + 'deg)';
+  }
+  setReadout(note, hint, color) {
+    if (this.noteRef.current) this.noteRef.current.innerHTML = note;
+    this.setHint(hint, color);
+  }
+  setHint(hint, color) {
+    if (this.hintRef.current) { this.hintRef.current.textContent = hint; this.hintRef.current.style.color = color || '#8A8A8A'; }
+  }
+
+  loop() {
+    if (!this.audio) return;
+    this.raf = requestAnimationFrame(() => this.loop());
+    const { an, buf, ctx } = this.audio;
+    an.getFloatTimeDomainData(buf);
+    const f = autoCorrelate(buf, ctx.sampleRate);
+    const targets = this.targets();
+    if (f < 0) {
+      this.silent = (this.silent || 0) + 1;
+      if (this.silent > 40) {
+        this.setReadout('—', this.state.mode === 'auto' ? 'Play any string.' : 'Play the selected string.', '#8A8A8A');
+        this.inTuneSince = 0;
+      }
+      return;
+    }
+    this.silent = 0;
+    let idx = this.state.selected;
+    if (this.state.mode === 'auto') {
+      let best = 0, bestD = Infinity;
+      targets.forEach((t, i) => {
+        const d = Math.abs(1200 * Math.log2(f / t.freq));
+        if (d < bestD) { bestD = d; best = i; }
+      });
+      idx = best;
+      if (idx !== this.state.selected) this.setState({ selected: idx });
+    }
+    const target = targets[idx];
+    if (!target) return;
+    const cents = 1200 * Math.log2(f / target.freq);
+    if (Math.abs(cents) > 100) {
+      this.setNeedle(cents > 0 ? 50 : -50);
+      const det = NOTE_NAMES[((Math.round(12 * Math.log2(f / this.state.a4)) + 69) % 12 + 12) % 12];
+      this.setReadout('<span style="color:#E0714A">' + det + ' detected</span>', 'Too far from ' + target.note + " — check you're on the right string.", '#E0714A');
+      this.inTuneSince = 0;
+      return;
+    }
+    const smooth = this.lastCents + (cents - this.lastCents) * 0.35;
+    this.lastCents = smooth;
+    this.setNeedle(smooth);
+    const inTune = Math.abs(smooth) <= 4;
+    const col = inTune ? '#3FBF7F' : '#F5A623';
+    this.setReadout(
+      target.note + ' <span style="font-family:\'JetBrains Mono\',monospace;font-size:19px;color:' + col + '">' + (smooth > 0 ? '+' : '') + smooth.toFixed(1) + '¢</span>',
+      inTune ? 'In tune — hold it.' : (smooth < 0 ? 'Flat — tighten slowly.' : 'Sharp — loosen slowly.'),
+      inTune ? '#3FBF7F' : '#8A8A8A'
+    );
+    if (inTune) {
+      if (!this.inTuneSince) this.inTuneSince = performance.now();
+      if (performance.now() - this.inTuneSince > 700 && !this.state.tuned.includes(idx)) this.setState(s => ({ tuned: s.tuned.concat(idx) }));
+    } else if (Math.abs(smooth) > 10) {
+      this.inTuneSince = 0;
+      if (this.state.tuned.includes(idx)) this.setState(s => ({ tuned: s.tuned.filter(i => i !== idx) }));
+    }
+  }
+
+  playRef() {
+    const t = this.targets()[this.state.selected];
+    if (!t) return;
+    const ctx = this.toneCtx || (this.toneCtx = new (window.AudioContext || window.webkitAudioContext)());
+    const now = ctx.currentTime, g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(0.28, now + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 2.2);
+    g.connect(ctx.destination);
+    [1, 2, 3].forEach((h, i) => {
+      const o = ctx.createOscillator();
+      o.type = i === 0 ? 'triangle' : 'sine';
+      o.frequency.value = t.freq * h;
+      const hg = ctx.createGain();
+      hg.gain.value = [1, 0.28, 0.12][i];
+      o.connect(hg); hg.connect(g);
+      o.start(now); o.stop(now + 2.3);
+    });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const tuning = TUNINGS[s.tuningIdx];
+    const targets = this.targets();
+    const tab = on => 'padding:8px 18px; border-radius:9px; border:none; font-size:13px; font-weight:500; cursor:pointer; background:' + (on ? '#2A1C06' : 'transparent') + '; color:' + (on ? '#F5A623' : '#8A8A8A');
+
+    const pegs = GEO.map((g, i) => {
+      const left = g.side === 'L';
+      const isTuned = s.tuned.includes(i), isSel = s.selected === i;
+      const cx = left ? 50 : 310;
+      const ring = isTuned ? '#3FBF7F' : (isSel ? '#F5A623' : '#2B2B2B');
+      const text = isTuned ? '#3FBF7F' : (isSel ? '#F5A623' : '#C9C9C9');
+      return {
+        note: targets[i] ? targets[i].note : '—',
+        state: isTuned ? 'TUNED' : (isSel ? 'ACTIVE' : ''),
+        ref: this.pegRefs[i],
+        btnStyle: 'position:absolute; left:' + (cx / 360 * 100).toFixed(2) + '%; top:' + (g.cy / 540 * 100).toFixed(2) + '%; transform:translate(-50%,-50%); width:19.5%; min-width:54px; aspect-ratio:1; border-radius:999px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; padding:0; transition:background-color 160ms, border-color 160ms, box-shadow 160ms; background-color:' + (isSel ? (isTuned ? '#11291D' : '#2A1C06') : '#181818') + '; border-style:solid; border-width:' + (isTuned || isSel ? '2.5px' : '1.5px') + '; border-color:' + ring + '; box-shadow:0 0 ' + (isTuned || isSel ? '22px -6px ' + ring : '0 0 rgba(0,0,0,0)'),
+        noteStyle: 'font-size:clamp(14px, 2.2vh, 20px); font-weight:500; line-height:1; color:' + text,
+        stateStyle: "font-family:'JetBrains Mono', monospace; font-size:9px; letter-spacing:0.08em; line-height:1; color:" + (isTuned ? '#3FBF7F' : '#F5A623'),
+        onSelect: () => { this.lastCents = 0; this.inTuneSince = 0; this.setNeedle(0); this.setState({ selected: i }, () => { if (this.state.mode === 'custom') this.playRef(); }); }
+      };
+    });
+
+    const posts = GEO.map(g => {
+      const left = g.side === 'L';
+      return { cy: g.cy, postX: left ? 124 : 236, barX: left ? 92 : 242, barY: g.cy - 3.5 };
+    });
+
+    const strings = GEO.map((g, i) => {
+      const left = g.side === 'L';
+      const px = left ? 124 : 236;
+      const isTuned = s.tuned.includes(i), isSel = s.selected === i;
+      const endX = 180 + (g.nut - 180) * 1.18;
+      return {
+        path: 'M' + px + ' ' + g.cy + ' L' + g.nut + ' 398 L' + endX + ' 540',
+        stroke: isTuned ? '#3FBF7F' : (isSel ? '#F5A623' : '#B9B4AC'),
+        width: (isTuned || isSel ? 0.8 : 0) + GAUGE[i],
+        op: isTuned || isSel ? 1 : 0.85
+      };
+    });
+
+    const wide = s.wide;
+    return {
+      pegs, posts, strings,
+      mainStyle: 'flex:1; min-height:0; display:flex; width:100%; ' + (wide
+        ? 'flex-direction:row-reverse; align-items:center; justify-content:center; gap:clamp(24px,5vw,72px); max-width:1080px; margin:0 auto; padding:8px clamp(16px,4vw,40px) 4px'
+        : 'flex-direction:column'),
+      stageStyle: 'display:flex; align-items:center; justify-content:center; min-height:0; ' + (wide
+        ? 'flex:0 1 auto; height:100%; padding:0'
+        : 'flex:1; width:100%; padding:0 clamp(12px,3vw,24px)'),
+      asideStyle: 'display:flex; flex-direction:column; justify-content:center; min-height:0; ' + (wide
+        ? 'flex:0 1 360px; gap:20px'
+        : 'flex:none; width:100%'),
+      tuningName: tuning.name + (tuning.soon ? ' — soon' : ''),
+      a4: s.a4,
+      sheetOpen: s.sheetOpen,
+      needleRef: this.needleRef, noteRef: this.noteRef, hintRef: this.hintRef,
+      customTabStyle: tab(s.mode === 'custom'),
+      autoTabStyle: tab(s.mode === 'auto'),
+      setCustom: () => this.setState({ mode: 'custom' }),
+      setAuto: () => this.setState({ mode: 'auto' }),
+      openSheet: () => this.setState({ sheetOpen: true }),
+      closeSheet: () => this.setState({ sheetOpen: false }),
+      stop: e => e.stopPropagation(),
+      toggleMic: () => this.toggleMic(),
+      playRef: () => this.playRef(),
+      micLabel: s.listening ? 'Stop listening' : 'Start listening',
+      micStyle: 'flex:1; padding:15px; border-radius:13px; border:none; font-size:15px; font-weight:700; cursor:pointer; background:' + (s.listening ? '#1A1A1A' : '#F5A623') + '; color:' + (s.listening ? '#F5A623' : '#0A0A0A') + '; box-shadow:' + (s.listening ? 'inset 0 0 0 1px #3A2A0A' : 'none'),
+      refLabel: 'Hear ' + (targets[s.selected] ? targets[s.selected].note : '—'),
+      refStyle: 'flex:0 0 40%; padding:15px; border-radius:13px; border:1px solid #262626; background:#141414; color:#D8D8D8; font-size:14px; cursor:pointer',
+      dots: targets.map((t, i) => ({
+        style: 'width:' + (s.selected === i ? '20px' : '7px') + '; height:7px; border-radius:99px; transition:all 180ms; background:' + (s.tuned.includes(i) ? '#3FBF7F' : (s.selected === i ? '#F5A623' : '#2C2C2C'))
+      })),
+      query: s.query || '',
+      onQuery: e => this.setState({ query: e.target.value }),
+      tuningGroups: GROUPS.map(gname => {
+        const q = (s.query || '').trim().toLowerCase();
+        const items = TUNINGS.map((t, i) => ({ t, i }))
+          .filter(o => o.t.g === gname && (!q || o.t.name.toLowerCase().includes(q) || o.t.notes.join(' ').toLowerCase().includes(q)))
+          .map(({ t, i }) => ({
+            name: t.name + (t.soon ? ' · soon' : ''),
+            notes: t.notes.join(' ') || 'set your own',
+            style: 'text-align:left; padding:10px 12px; border-radius:11px; cursor:' + (t.soon ? 'not-allowed' : 'pointer') + '; background:' + (i === s.tuningIdx ? '#2A1C06' : '#171717') + '; border:1px solid ' + (i === s.tuningIdx ? '#5A3E0C' : '#232323') + '; color:' + (t.soon ? '#5A5A5A' : (i === s.tuningIdx ? '#F5A623' : '#E8E8E8')) + '; opacity:' + (t.soon ? 0.55 : 1),
+            onPick: () => { if (!t.soon) this.setState({ tuningIdx: i, tuned: [], selected: 0, sheetOpen: false, query: '' }); }
+          }));
+        return { name: gname, items, style: items.length ? 'display:block' : 'display:none' };
+      }),
+      refs: [415, 432, 440, 442].map(hz => ({
+        hz,
+        style: 'flex:1; padding:11px; border-radius:11px; font-family:JetBrains Mono, monospace; font-size:14px; cursor:pointer; background:' + (hz === s.a4 ? '#2A1C06' : '#171717') + '; border:1px solid ' + (hz === s.a4 ? '#5A3E0C' : '#232323') + '; color:' + (hz === s.a4 ? '#F5A623' : '#C9C9C9'),
+        onPick: () => this.setState({ a4: hz, tuned: [] })
+      }))
+    };
+  }
+}
+</script>
+
+
+</body></html>

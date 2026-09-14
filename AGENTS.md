@@ -33,24 +33,41 @@ lookup; play-along / playthrough.
 
 ## The two tuning modes
 
-Terminology matters here — the UI labels and the internal names differ on
-purpose, because "Custom" reads like "user-defined tuning" and would be
-confusing in code.
+**Revised in the v2 design.** These were originally "ear mode" and "mic mode":
+Custom meant no microphone at all, Auto meant no reference tone. That split
+was wrong in practice. Hearing the target pitch *while* watching the needle is
+how people actually tune, and forcing a mode switch between the two made the
+app fight the user.
 
-| UI label | Internal name | What it does                                                     |
-|----------|---------------|------------------------------------------------------------------|
-| Custom   | `ear`         | Tap a peg, app **plays** the target pitch, user tunes by ear.     |
-| Auto     | `mic`         | User plucks, app **listens**, needle moves left/right to centre.  |
+So the modes now describe **how the string being tuned is chosen**, not which
+hardware is in play. The microphone and the reference tone are available in
+both.
 
-Never name a module, route, or type `custom` — use `ear` / `mic`.
+| UI label | Internal name | How the string is chosen                                    |
+|----------|---------------|-------------------------------------------------------------|
+| Custom   | `manual`      | You tap a peg. It stays selected until you tap another.      |
+| Auto     | `follow`      | The app identifies whichever string you play, and follows it.|
+
+Never name a module, route, or type `custom` — the word is the UI label for
+manual selection, and it also reads like "user-defined tuning", which is a
+different thing entirely (see `core/tunings/custom.ts`, which is about saved
+tunings and exports nothing called custom).
+
+Note that Auto is the mode with the safety burden: identifying the string from
+pitch alone is what once told a player to tighten a D string up to G. See
+`trackString` in `core/tunings/target.ts`.
 
 ## Build order (deliberate)
 
-1. **`ear` mode first.** No mic, no DSP, no permissions, no iOS audio
+1. **Reference playback first.** No mic, no DSP, no permissions, no iOS audio
    minefield. It is a complete, useful, shippable product on its own and it
    already solves the paywall grievance — every alternate tuning unlocked.
-2. **`mic` mode second.** All the technical risk lives here. Do not let it
-   block shipping step 1.
+2. **Pitch detection second.** All the technical risk lives here. Do not let
+   it block shipping step 1.
+
+Both are now built. The ordering is kept here because it explains why the
+codebase is shaped the way it is — the detector was designed to be testable
+without a browser precisely so it could be deferred safely.
 
 ## Architecture decisions
 
@@ -98,7 +115,7 @@ Must thread through all note↔frequency math from the start (440 default; 432,
 442, 415 are real user requests). Trivial now, painful once 440 is hardcoded in
 twenty places.
 
-## `ear` mode: use Karplus-Strong, not a sine wave
+## Reference tone: use Karplus-Strong, not a sine wave
 
 A pure sine is genuinely hard to tune against — no harmonics means the beat
 frequencies the ear relies on are weak.
@@ -108,7 +125,7 @@ convincingly like a plucked string, produces any frequency exactly, and needs
 zero audio assets — which keeps the PWA small and fully offline. Recorded
 samples sound marginally better but fight the offline goal.
 
-## `mic` mode: the hard part
+## Pitch detection: the hard part
 
 Read this before touching pitch detection.
 

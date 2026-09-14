@@ -40,7 +40,7 @@ export function ReferencePitchControl({
                 "flex-1 rounded-xl border px-2 py-2.5 font-mono text-sm tabular-nums transition-colors",
                 "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright",
                 selected
-                  ? "border-accent bg-accent-dim/40 text-accent-bright"
+                  ? "border-accent bg-accent-bg text-accent-bright"
                   : "border-edge bg-panel text-ink-muted hover:text-ink",
               ].join(" ")}
             >

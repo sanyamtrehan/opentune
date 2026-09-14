@@ -38,7 +38,7 @@ export function ModeToggle({ value, onChange }: ModeToggleProps) {
             onClick={() => onChange(mode)}
             className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright ${
               selected
-                ? "bg-accent-dim/40 text-accent-bright"
+                ? "bg-accent-bg text-accent-bright"
                 : "text-ink-muted hover:text-ink"
             }`}
           >

@@ -135,7 +135,7 @@ export function Tuner() {
             <button
               type="button"
               onClick={deleteTuning}
-              className="rounded-xl border border-edge px-4 py-3 text-sm text-ink-muted hover:border-accent-dim hover:text-accent-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright"
+              className="rounded-xl border border-edge px-4 py-3 text-sm text-ink-muted hover:border-accent-edge hover:text-accent-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright"
             >
               Delete
             </button>

@@ -70,7 +70,7 @@ export function TuningEditor({
   const canSave = problem === null && trimmed.length > 0;
 
   return (
-    <section className="flex flex-col gap-5 rounded-2xl border border-edge bg-panel/60 p-5">
+    <section className="flex flex-col gap-5 rounded-2xl border border-edge bg-panel p-5">
       <h2 className="text-sm font-medium uppercase tracking-widest text-ink-muted">
         New tuning
       </h2>
@@ -93,7 +93,7 @@ export function TuningEditor({
               type="button"
               onClick={() => void play(noteToFrequency(note, reference))}
               aria-label={`Play ${formatNote(note)}`}
-              className="flex-1 rounded-lg border border-edge bg-ground py-2 font-mono text-lg tabular-nums hover:border-accent-dim hover:text-accent-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright"
+              className="flex-1 rounded-lg border border-edge bg-ground py-2 font-mono text-lg tabular-nums hover:border-accent-edge hover:text-accent-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright"
             >
               {formatNote(note)}
             </button>

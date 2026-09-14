@@ -156,8 +156,8 @@ export function Headstock({ strings, sounding, onPluck }: HeadstockProps) {
               "h-[16%] w-[22%] text-[clamp(0.8rem,3.4vw,1.05rem)]",
               "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright",
               isSounding
-                ? "peg-ringing border-accent bg-accent text-ground"
-                : "border-edge bg-panel text-ink hover:border-accent-dim hover:text-accent-bright active:bg-edge",
+                ? "border-accent bg-accent text-ground"
+                : "border-edge bg-panel text-ink hover:border-accent-edge hover:text-accent-bright active:bg-edge",
             ].join(" ")}
             style={{
               left: `${(peg.x / VIEW_WIDTH) * 100}%`,
