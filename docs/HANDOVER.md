@@ -93,17 +93,19 @@ Full reasoning in AGENTS.md. Summary so nothing gets silently reopened:
 
 ## What exists right now
 
-Both modes are built. Nothing has been verified against a real guitar or a
-real microphone yet — see "What is left".
+Both modes are built, and the v2 design is in. Nothing has been verified
+against a real guitar or a real microphone yet — see "What is left".
 
 - `src/core/music/` — spelled notes, and note↔frequency with A4 as a parameter
 - `src/core/tunings/` — twelve interval patterns generating every preset,
   root-relative spelling, user-defined tunings
 - `src/core/audio/` — Karplus-Strong synthesis, the MPM pitch detector, and
   the synthesised signals both are tested against
-- `src/core/tunings/target.ts` — which string is being played, and how far off
-- `src/app/_components/` — headstock peg UI, needle, mode toggle, tuning
-  picker, tuning editor
+- `src/core/tunings/target.ts` — which string is being played, how far off, and
+  the sticky tracking that stops it telling you to tighten a D up to G
+- `src/app/_components/` — one `TuningStage` for both modes, the headstock and
+  its dial, the readout, the tuning sheet, the tuning editor
+- `docs/DESIGN.md` — the v2 design contract: palette, type, geometry, motion
 - `src/app/_audio/` — shared AudioContext, the synth shell, mic capture, and
   the worklet shell that `pnpm worklet` compiles into `public/pitch-worklet.js`
 - `src/app/_storage/` — saved tunings in localStorage, as an external store
@@ -123,8 +125,17 @@ Verification, which is the part that could not be done from a terminal:
    real string in front of it. The detector is tested hard against synthesised
    signals, but the room, the mic and the attack transient are not synthesised.
 3. **Real guitar recordings** for the test harness (see open question 5).
-   Until those exist, every claim about `mic` mode accuracy rests on synthesis.
+   Until those exist, every claim about detection accuracy rests on synthesis.
 4. **Install it on a phone** and check the offline path with the network off.
+5. **Check the reference tone against the microphone.** Detection is muted
+   while the tone rings, because otherwise the tuner hears its own note
+   through the speaker and calls it perfect. Whether four seconds of deafness
+   after each tap is the right trade is a judgement that needs the real thing.
+
+Then the chord library, which is the agreed next feature and already has dead
+nav entries waiting for it. Its scope was never settled — generated voicings
+for any tuning, a curated list for standard only, or both — and that decision
+shapes everything downstream.
 
 ## Environment notes
 
