@@ -278,11 +278,18 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
   const note = tuning.strings[selected];
 
   return (
-    /* Above 780px the stage and the controls sit side by side, headstock on
-       the right. A tall headstock in a short landscape window is unusable,
-       and a laptop is exactly where that happens. */
-    <div className="mx-auto flex min-h-0 w-full max-w-[67.5rem] flex-1 flex-col gap-2 min-[780px]:flex-row-reverse min-[780px]:items-center min-[780px]:gap-[clamp(1.5rem,5vw,4.5rem)] min-[780px]:px-[clamp(1rem,4vw,2.5rem)]">
-      <div className="flex min-h-0 flex-1 items-center justify-center min-[780px]:h-full min-[780px]:flex-[0_1_auto]">
+    /*
+     * In a short, wide window the stage and controls sit side by side with
+     * the headstock on the right. See the `wide-short` variant.
+     *
+     * The stage is `flex-[1_1_0]`, not `auto`. With an auto basis its width
+     * depends on the SVG, whose width depends on the stage — the browser
+     * resolves that circle by overflowing, which clipped the headstock off
+     * the bottom of the screen. A zero basis makes the width a share of the
+     * row, so the SVG has something definite to letter-box itself into.
+     */
+    <div className="flex min-h-0 w-full flex-1 flex-col gap-2 overflow-hidden wide-short:flex-row-reverse wide-short:items-stretch wide-short:justify-center wide-short:gap-6 wide-short:py-2">
+      <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden wide-short:flex-[1_1_0]">
         <Headstock
           strings={tuning.strings}
           selected={selected}
@@ -293,7 +300,7 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
         />
       </div>
 
-      <div className="flex flex-none flex-col min-[780px]:flex-[0_1_22.5rem] min-[780px]:gap-5">
+      <div className="flex flex-none flex-col wide-short:flex-[0_0_19rem] wide-short:justify-center wide-short:gap-3 wide-short:self-center">
 
       <Readout
         note={target ? target.note : note}
@@ -310,7 +317,7 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
         }
       />
 
-      <div className="mx-auto flex w-full max-w-[35rem] flex-none flex-col gap-2 px-[clamp(1rem,4vw,1.75rem)] pt-2">
+      <div className="mx-auto flex w-full flex-none flex-col gap-2 px-[clamp(1rem,4vw,1.75rem)] pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         {/* One dot per string, so progress through a tuning is visible
             without reading six labels. */}
         <div className="flex items-center justify-center gap-[7px]">

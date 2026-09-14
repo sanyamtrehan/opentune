@@ -11,6 +11,19 @@ detection, its reference tone and its string-following logic are all worse
 than what is already in `src/core/`, and none of that was adopted. What was
 adopted is the look, the layout and the interaction model.
 
+## Looking at it
+
+`scripts/screenshot.sh 390 844 /tmp/phone.png` against a running `pnpm dev`.
+
+Use it. The whole v2 redesign was built without once rendering the page, and
+the result was a layout that split a tall desktop window into two objects
+floating in a void — invisible in the markup, obvious in a screenshot.
+
+Note the script loads the app in an iframe. Headless Chrome will not make its
+viewport narrower than 500px; ask for 390 and it quietly gives you 500 and
+scales the image, which looks exactly like a layout overflowing to the right.
+That false reading cost an afternoon.
+
 ## Palette
 
 Warm dark. The stated use case is a phone at arm's length in a dim rehearsal
@@ -75,9 +88,20 @@ Single screen, `100dvh`, nothing scrolls except the tuning sheet.
 └─────────────────────────────────────────┘
 ```
 
-At **≥780px** the stage and the controls sit side by side (`row-reverse`:
-headstock right, controls left), because a tall headstock in a short landscape
-window is unusable.
+Everything sits in a **phone-shaped column, centred** (`max-width: 27rem`) at
+any window size. This is a one-screen instrument, not a page that should
+sprawl across a monitor.
+
+The stage and controls sit side by side only in a **short, wide** window —
+`(min-width: 780px) and (max-height: 560px)`, the `wide-short` variant. The
+reason for turning the layout on its side is that a tall headstock does not
+fit in a short window, which is a question about height. Gating it on width
+instead put a desktop browser into the split layout, where it looked empty
+and wrong.
+
+Because the column is a fixed width regardless of the window, **breakpoints
+inside it must be container queries** (`@[34rem]:`), not viewport ones: `sm:`
+is true on a 1280px monitor even when the element is 432px wide.
 
 ## Headstock geometry
 

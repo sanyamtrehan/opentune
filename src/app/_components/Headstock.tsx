@@ -43,6 +43,9 @@ const POST_X = { left: 124, right: 236 };
 const BAR_X = { left: 92, right: 242 };
 const BUTTON_X = { left: 50, right: 310 };
 
+/** Peg diameter, in drawing units. */
+const PEG_SIZE = 70;
+
 const NUT_Y = 398;
 
 export type StringState = "idle" | "active" | "tuned";
@@ -97,16 +100,19 @@ export function Headstock({
       : Math.max(-MAX_DEGREES, Math.min(MAX_DEGREES, cents * DEGREES_PER_CENT));
 
   return (
-    <div
-      className="relative mx-auto h-full"
-      style={{ aspectRatio: `${VIEW_WIDTH} / ${VIEW_HEIGHT}` }}
+    /*
+     * The SVG sizes itself: `preserveAspectRatio` letter-boxes the drawing
+     * inside whatever box it is given, so it can never overflow in either
+     * direction. The pegs live inside it as foreignObject rather than as
+     * HTML positioned on top, because anything positioned over the SVG has
+     * to guess where the drawing actually landed — and guessing wrong on a
+     * tall phone pushed half the pegs off the screen.
+     */
+    <svg
+      viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
+      preserveAspectRatio="xMidYMid meet"
+      className="block h-full max-h-full w-full"
     >
-      <svg
-        viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
-        preserveAspectRatio="xMidYMid meet"
-        className="block h-full w-full"
-        aria-hidden="true"
-      >
         <defs>
           <linearGradient id="ot-wood" x1="0.1" y1="0" x2="0.9" y2="1">
             <stop offset="0%" stopColor="var(--color-wood-light)" />
@@ -271,7 +277,10 @@ export function Headstock({
           </g>
         ))}
 
-        <rect x="104" y="454" width="152" height="86" fill="url(#ot-fade)" />
+        {/* Overhangs the drawing on every side: the strings have round caps
+            that poke past the last row of pixels, and clipped string ends
+            read as six bright dots along the bottom edge. */}
+        <rect x="96" y="436" width="168" height="112" fill="url(#ot-fade)" />
 
         {/* The needle, and the hub it turns on. */}
         <g
@@ -290,15 +299,8 @@ export function Headstock({
             stroke="var(--color-accent)"
             strokeWidth="3"
             strokeLinecap="round"
-            opacity={cents === null ? 0.35 : 1}
           />
-          <circle
-            cx={PIVOT.x}
-            cy="42"
-            r="4"
-            fill="var(--color-accent)"
-            opacity={cents === null ? 0.35 : 1}
-          />
+          <circle cx={PIVOT.x} cy="42" r="4" fill="var(--color-accent)" />
         </g>
         <circle
           cx={PIVOT.x}
@@ -309,48 +311,50 @@ export function Headstock({
           strokeWidth="2"
         />
         <circle cx={PIVOT.x} cy={PIVOT.y} r="3.5" fill="var(--color-accent)" />
-      </svg>
-
       {strings.map((note, index) => {
         const geometry = GEOMETRY[index];
         const state = stateOf(index, selected, tuned);
         const label = formatNote(note);
         return (
-          <button
+          <foreignObject
             key={index}
-            type="button"
-            onClick={() => onSelect(index)}
-            aria-pressed={state !== "idle"}
-            aria-label={`String ${6 - index}, ${label}${
-              state === "tuned" ? ", in tune" : ""
-            }`}
-            className={[
-              "absolute flex aspect-square w-[19.5%] min-w-[3.375rem] -translate-x-1/2 -translate-y-1/2",
-              "cursor-pointer flex-col items-center justify-center gap-0.5 rounded-full",
-              "border-solid transition-[background-color,border-color,box-shadow,transform] duration-150",
-              "active:scale-95",
-              state === "tuned" ? "tuned-pop" : "",
-              "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright",
-              state === "tuned"
-                ? "border-[2.5px] border-tuned bg-tuned-bg text-tuned shadow-[0_0_22px_-6px_var(--color-tuned)]"
-                : state === "active"
-                  ? "border-[2.5px] border-accent bg-accent-bg text-accent shadow-[0_0_22px_-6px_var(--color-accent)]"
-                  : "border-[1.5px] border-edge-strong bg-panel-raised text-[#c9c9c9] hover:border-accent-edge",
-            ].join(" ")}
-            style={{
-              left: `${(BUTTON_X[geometry.side] / VIEW_WIDTH) * 100}%`,
-              top: `${(geometry.postY / VIEW_HEIGHT) * 100}%`,
-            }}
+            x={BUTTON_X[geometry.side] - PEG_SIZE / 2}
+            y={geometry.postY - PEG_SIZE / 2}
+            width={PEG_SIZE}
+            height={PEG_SIZE}
+            overflow="visible"
           >
-            <span className="text-[clamp(0.875rem,2.2vh,1.25rem)] leading-none font-medium">
-              {label}
-            </span>
-            <span className="font-mono text-[9px] leading-none tracking-[0.08em]">
-              {state === "tuned" ? "TUNED" : state === "active" ? "ACTIVE" : ""}
-            </span>
-          </button>
+            <button
+              type="button"
+              onClick={() => onSelect(index)}
+              aria-pressed={state !== "idle"}
+              aria-label={`String ${6 - index}, ${label}${
+                state === "tuned" ? ", in tune" : ""
+              }`}
+              className={[
+                "flex h-full w-full cursor-pointer flex-col items-center justify-center",
+                "gap-[2px] rounded-full border-solid",
+                "transition-[background-color,border-color,box-shadow,scale] duration-150",
+                "active:scale-95",
+                state === "tuned" ? "tuned-pop" : "",
+                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright",
+                state === "tuned"
+                  ? "border-[2.5px] border-tuned bg-tuned-bg text-tuned shadow-[0_0_22px_-6px_var(--color-tuned)]"
+                  : state === "active"
+                    ? "border-[2.5px] border-accent bg-accent-bg text-accent shadow-[0_0_22px_-6px_var(--color-accent)]"
+                    : "border-[1.5px] border-edge-strong bg-panel-raised text-[#c9c9c9] hover:border-accent-edge",
+              ].join(" ")}
+            >
+              {/* Sizes are in SVG user units, so they scale with the drawing
+                  instead of needing viewport-relative guesses. */}
+              <span className="text-[19px] leading-none font-medium">{label}</span>
+              <span className="font-mono text-[9px] leading-none tracking-[0.08em]">
+                {state === "tuned" ? "TUNED" : state === "active" ? "ACTIVE" : ""}
+              </span>
+            </button>
+          </foreignObject>
         );
       })}
-    </div>
+    </svg>
   );
 }

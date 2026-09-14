@@ -46,11 +46,19 @@ export function Readout({ note, cents, stringNumber, idleHint }: ReadoutProps) {
           "—"
         ) : (
           <>
-            {formatNote(note)}{" "}
-            <span className={`font-mono text-[1.1875rem] tabular-nums ${centsColour}`}>
-              {cents !== null && cents > 0 ? "+" : ""}
-              {cents?.toFixed(1)}¢
-            </span>
+            {formatNote(note)}
+            {/* No reading means no number — a lone "¢" is not information. */}
+            {cents !== null && (
+              <>
+                {" "}
+                <span
+                  className={`font-mono text-[1.1875rem] tabular-nums ${centsColour}`}
+                >
+                  {cents > 0 ? "+" : ""}
+                  {cents.toFixed(1)}¢
+                </span>
+              </>
+            )}
           </>
         )}
       </div>

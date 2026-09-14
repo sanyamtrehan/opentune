@@ -7,7 +7,6 @@
 
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 
-import { formatNote } from "@/core/music/notes.ts";
 import { A440 } from "@/core/music/types.ts";
 import type { Note, Tuning } from "@/core/music/types.ts";
 import { PRESETS, findPreset } from "@/core/tunings/presets.ts";
@@ -84,10 +83,13 @@ export function Tuner() {
   }, [tuningId]);
 
   return (
-    <div className="relative flex h-[100dvh] w-full flex-col overflow-hidden">
+    /* A phone-shaped column, centred, whatever the window. This is a
+       one-screen instrument, not a page that should sprawl to fill a
+       monitor. */
+    <div className="relative mx-auto flex h-[100dvh] w-full max-w-[27rem] flex-col overflow-hidden @container wide-short:max-w-[62rem]">
       <Header />
 
-      <div className="mx-auto flex w-full max-w-[38.75rem] flex-none items-center gap-2.5 px-[clamp(1rem,4vw,1.75rem)] pb-1.5">
+      <div className="flex w-full flex-none items-center gap-2.5 px-[clamp(1rem,4vw,1.75rem)] pb-1.5 wide-short:mx-auto wide-short:max-w-[40rem]">
         <ModeToggle value={mode} onChange={changeMode} />
 
         {/* Tuning and reference pitch share one control: they are the same
@@ -136,12 +138,6 @@ export function Tuner() {
             reload.
           </p>
         )}
-
-        <footer className="mt-auto py-3 text-center">
-          <span className="font-mono text-[11px] tracking-wider text-ink-faint">
-            {tuning.strings.map(formatNote).join(" ")}
-          </span>
-        </footer>
       </div>
 
       <TuningSheet
