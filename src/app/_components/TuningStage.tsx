@@ -13,6 +13,7 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -63,6 +64,9 @@ const SMOOTHING = 0.35;
 /** Audio support cannot change while the page is open. */
 const subscribeNever = () => () => {};
 
+/** Shared empty array, so "nothing tuned yet" is referentially stable. */
+const EMPTY: number[] = [];
+
 export interface TuningStageProps {
   tuning: Tuning;
   reference: number;
@@ -75,6 +79,9 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
   const [starting, setStarting] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [target, setTarget] = useState<StringTarget | null>(null);
+  /** Bumped on every reference tone, so the string animation can restart
+   *  even when the same string is played twice. */
+  const [pluck, setPluck] = useState<{ index: number; nonce: number } | null>(null);
 
   /*
    * Tuned strings are stored with the tuning and pitch they were tuned to.
@@ -87,7 +94,12 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
     key: settingKey,
     indexes: [],
   });
-  const tuned = tunedFor.key === settingKey ? tunedFor.indexes : [];
+  // Memoised so the empty case is a stable array: it feeds an effect
+  // dependency, and a fresh [] each render would re-run it forever.
+  const tuned = useMemo(
+    () => (tunedFor.key === settingKey ? tunedFor.indexes : EMPTY),
+    [settingKey, tunedFor],
+  );
 
   const supported = useSyncExternalStore(subscribeNever, isSupported, () => true);
 
@@ -105,13 +117,17 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
    * as perfectly in tune. Nobody is helped by a tuner that agrees with itself.
    */
   const mutedUntil = useRef(0);
+  /** Mirror of `tuned`, readable from the reading handler without stale
+   *  closures, so arriving at pitch can be detected as a transition. */
+  const tunedRef = useRef<number[]>([]);
 
   // The reading handler is installed on the worklet port once, so it must not
   // close over stale props. Synced after commit, never during render.
   const live = useRef({ tuning, reference, mode, selected, settingKey });
   useEffect(() => {
     live.current = { tuning, reference, mode, selected, settingKey };
-  }, [mode, reference, selected, settingKey, tuning]);
+    tunedRef.current = tuned;
+  }, [mode, reference, selected, settingKey, tuned, tuning]);
 
   const resetTracking = useCallback(() => {
     history.current = [];
@@ -168,22 +184,21 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
       // Tuned is earned by holding pitch, not by passing through it.
       if (Math.abs(value) <= IN_TUNE_CENTS) {
         inTuneSince.current ??= performance.now();
-        if (performance.now() - inTuneSince.current > TUNED_HOLD_MS) {
-          setTunedFor((state) => {
-            const indexes = state.key === current.settingKey ? state.indexes : [];
-            return indexes.includes(found.index)
-              ? { key: current.settingKey, indexes }
-              : { key: current.settingKey, indexes: [...indexes, found.index] };
-          });
+        if (
+          performance.now() - inTuneSince.current > TUNED_HOLD_MS &&
+          !tunedRef.current.includes(found.index)
+        ) {
+          tunedRef.current = [...tunedRef.current, found.index];
+          // A short buzz at the moment it lands, because the player is
+          // looking at the neck and the fingers, not at the screen.
+          navigator.vibrate?.(35);
+          setTunedFor({ key: current.settingKey, indexes: tunedRef.current });
         }
       } else {
         inTuneSince.current = null;
-        if (Math.abs(value) > UNTUNED_CENTS) {
-          setTunedFor((state) =>
-            state.key === current.settingKey
-              ? { key: state.key, indexes: state.indexes.filter((i) => i !== found.index) }
-              : state,
-          );
+        if (Math.abs(value) > UNTUNED_CENTS && tunedRef.current.includes(found.index)) {
+          tunedRef.current = tunedRef.current.filter((i) => i !== found.index);
+          setTunedFor({ key: current.settingKey, indexes: tunedRef.current });
         }
       }
     }
@@ -233,6 +248,7 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
   const hear = useCallback(
     (index: number) => {
       mutedUntil.current = performance.now() + TONE_MS;
+      setPluck((previous) => ({ index, nonce: (previous?.nonce ?? 0) + 1 }));
       void play(noteToFrequency(tuning.strings[index], reference));
     },
     [reference, tuning],
@@ -262,16 +278,22 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
   const note = tuning.strings[selected];
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-2">
-      <div className="flex min-h-0 flex-1 items-center justify-center">
+    /* Above 780px the stage and the controls sit side by side, headstock on
+       the right. A tall headstock in a short landscape window is unusable,
+       and a laptop is exactly where that happens. */
+    <div className="mx-auto flex min-h-0 w-full max-w-[67.5rem] flex-1 flex-col gap-2 min-[780px]:flex-row-reverse min-[780px]:items-center min-[780px]:gap-[clamp(1.5rem,5vw,4.5rem)] min-[780px]:px-[clamp(1rem,4vw,2.5rem)]">
+      <div className="flex min-h-0 flex-1 items-center justify-center min-[780px]:h-full min-[780px]:flex-[0_1_auto]">
         <Headstock
           strings={tuning.strings}
           selected={selected}
           tuned={tuned}
           cents={target?.cents ?? null}
+          pluck={pluck}
           onSelect={selectPeg}
         />
       </div>
+
+      <div className="flex flex-none flex-col min-[780px]:flex-[0_1_22.5rem] min-[780px]:gap-5">
 
       <Readout
         note={target ? target.note : note}
@@ -332,6 +354,7 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
             Hear {note ? formatNote(note) : "—"}
           </button>
         </div>
+      </div>
       </div>
     </div>
   );

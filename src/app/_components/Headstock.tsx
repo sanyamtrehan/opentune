@@ -52,6 +52,15 @@ function stateOf(index: number, selected: number | null, tuned: readonly number[
   return index === selected ? ("active" as const) : ("idle" as const);
 }
 
+/** The line a string takes: post, over the nut, then off the bottom edge
+ *  fanning outwards, the way strings actually run over a fretboard. */
+function stringPath(index: number): string {
+  const geometry = GEOMETRY[index];
+  const postX = POST_X[geometry.side];
+  const endX = 180 + (geometry.nutX - 180) * 1.18;
+  return `M${postX} ${geometry.postY} L${geometry.nutX} ${NUT_Y} L${endX} ${VIEW_HEIGHT}`;
+}
+
 const STROKE: Record<StringState, string> = {
   idle: "var(--color-string)",
   active: "var(--color-accent)",
@@ -66,6 +75,11 @@ export interface HeadstockProps {
   tuned: readonly number[];
   /** Deviation of the current reading, or null when nothing is being heard. */
   cents: number | null;
+  /**
+   * The most recent pluck. `nonce` changes on every play, including replays
+   * of the same string, which is what lets the animation restart.
+   */
+  pluck?: { index: number; nonce: number } | null;
   onSelect: (index: number) => void;
 }
 
@@ -74,6 +88,7 @@ export function Headstock({
   selected,
   tuned,
   cents,
+  pluck = null,
   onSelect,
 }: HeadstockProps) {
   const angle =
@@ -199,25 +214,34 @@ export function Headstock({
         <rect x="122" y="396" width="116" height="11" rx="3.5" fill="var(--color-nut)" />
 
         {strings.map((note, index) => {
-          const geometry = GEOMETRY[index];
           const state = stateOf(index, selected, tuned);
-          const postX = POST_X[geometry.side];
-          // Carry the line past the nut so it leaves the frame fanning out,
-          // the way strings actually do over a fretboard.
-          const endX = 180 + (geometry.nutX - 180) * 1.18;
           return (
             <path
               key={index}
-              d={`M${postX} ${geometry.postY} L${geometry.nutX} ${NUT_Y} L${endX} ${VIEW_HEIGHT}`}
+              d={stringPath(index)}
               fill="none"
               stroke={STROKE[state]}
-              strokeWidth={geometry.gauge + (state === "idle" ? 0 : 0.8)}
+              strokeWidth={GEOMETRY[index].gauge + (state === "idle" ? 0 : 0.8)}
               strokeLinecap="round"
               opacity={state === "idle" ? 0.85 : 1}
               className="transition-[stroke,stroke-width,opacity] duration-200"
             />
           );
         })}
+
+        {/* The pluck, as a copy of the string that blooms and dies. Keyed by
+            the nonce so replaying the same string restarts the animation
+            rather than being treated as no change. */}
+        {pluck && (
+          <path
+            key={pluck.nonce}
+            d={stringPath(pluck.index)}
+            fill="none"
+            stroke={STROKE[stateOf(pluck.index, selected, tuned)]}
+            strokeLinecap="round"
+            className="string-ring"
+          />
+        )}
 
         {GEOMETRY.map((geometry, index) => (
           <g key={index}>
@@ -303,7 +327,9 @@ export function Headstock({
             className={[
               "absolute flex aspect-square w-[19.5%] min-w-[3.375rem] -translate-x-1/2 -translate-y-1/2",
               "cursor-pointer flex-col items-center justify-center gap-0.5 rounded-full",
-              "border-solid transition-[background-color,border-color,box-shadow] duration-150",
+              "border-solid transition-[background-color,border-color,box-shadow,transform] duration-150",
+              "active:scale-95",
+              state === "tuned" ? "tuned-pop" : "",
               "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright",
               state === "tuned"
                 ? "border-[2.5px] border-tuned bg-tuned-bg text-tuned shadow-[0_0_22px_-6px_var(--color-tuned)]"
