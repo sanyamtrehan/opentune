@@ -15,7 +15,7 @@ import { searchRange, targetString, trackString } from "@/core/tunings/target.ts
 import type { StringTarget } from "@/core/tunings/target.ts";
 
 import { Headstock } from "./Headstock";
-import { Needle } from "./Needle";
+import { Readout } from "./Readout";
 import { MicError, listen } from "../_audio/microphone";
 import type { Listener, MicReading } from "../_audio/microphone";
 
@@ -147,18 +147,22 @@ export function MicMode({ tuning, reference }: MicModeProps) {
   const listening = status === "listening";
 
   return (
-    <div className="flex flex-col gap-6">
-      <Headstock
-        strings={tuning.strings}
-        sounding={locked ?? target?.index ?? null}
-        onPluck={(index) => setLocked(locked === index ? null : index)}
-      />
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
+      <div className="flex min-h-0 flex-1 items-center justify-center">
+        <Headstock
+          strings={tuning.strings}
+          selected={locked ?? target?.index ?? null}
+          tuned={[]}
+          cents={target?.cents ?? null}
+          onSelect={(index) => setLocked(locked === index ? null : index)}
+        />
+      </div>
 
-      <Needle
+      <Readout
         note={target?.note ?? null}
         cents={target?.cents ?? null}
         stringNumber={target ? 6 - target.index : null}
-        live={listening}
+        idleHint={listening ? "Play a string." : "Start listening to begin."}
       />
 
       <p className="text-center text-xs text-ink-faint">

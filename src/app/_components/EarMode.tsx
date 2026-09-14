@@ -74,8 +74,16 @@ export function EarMode({ tuning, reference }: EarModeProps) {
   const note = sounding === null ? null : tuning.strings[sounding];
 
   return (
-    <div className="flex flex-col gap-4">
-      <Headstock strings={tuning.strings} sounding={sounding} onPluck={pluck} />
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
+      <div className="flex min-h-0 flex-1 items-center justify-center">
+        <Headstock
+          strings={tuning.strings}
+          selected={sounding}
+          tuned={[]}
+          cents={null}
+          onSelect={pluck}
+        />
+      </div>
 
       <p className="min-h-[3.5rem] text-center text-sm text-ink-muted" aria-live="polite">
         {!supported ? (
