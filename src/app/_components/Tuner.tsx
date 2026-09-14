@@ -18,9 +18,9 @@ import { EarMode } from "./EarMode";
 import { MicMode } from "./MicMode";
 import { ModeToggle } from "./ModeToggle";
 import type { Mode } from "./ModeToggle";
-import { ReferencePitchControl } from "./ReferencePitchControl";
+import { Header } from "./Header";
 import { TuningEditor } from "./TuningEditor";
-import { TuningPicker } from "./TuningPicker";
+import { TuningSheet } from "./TuningSheet";
 import { stop } from "../_audio/pluck-voice";
 import {
   addTuning,
@@ -35,6 +35,7 @@ export function Tuner() {
   const [tuningId, setTuningId] = useState("standard");
   const [reference, setReference] = useState<number>(A440);
   const [editing, setEditing] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [storageFailed, setStorageFailed] = useState(false);
 
   const stored = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
@@ -84,78 +85,84 @@ export function Tuner() {
   }, [tuningId]);
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-5 py-8">
-      <header className="flex items-baseline justify-between">
-        <h1 className="text-xl font-semibold tracking-tight">OpenTune</h1>
-        <p className="text-xs uppercase tracking-widest text-ink-faint">
-          Every tuning, free
-        </p>
-      </header>
+    <div className="relative flex h-[100dvh] w-full flex-col overflow-hidden">
+      <Header />
 
-      <ModeToggle value={mode} onChange={changeMode} />
+      <div className="mx-auto flex w-full max-w-[38.75rem] flex-none items-center gap-2.5 px-[clamp(1rem,4vw,1.75rem)] pb-1.5">
+        <ModeToggle value={mode} onChange={changeMode} />
 
-      <TuningPicker
+        {/* Tuning and reference pitch share one control: they are the same
+            question — what am I tuning to — and they were two separate blocks
+            competing with the headstock for attention. */}
+        <button
+          type="button"
+          onClick={() => setSheetOpen(true)}
+          className="flex min-w-0 flex-1 cursor-pointer items-center justify-between gap-2.5 rounded-xl border border-edge bg-panel px-3.5 py-[0.5625rem] text-left text-sm text-ink hover:border-accent-edge"
+        >
+          <span className="truncate">{tuning.name}</span>
+          <span className="flex-none font-mono text-[11px] whitespace-nowrap text-ink-faint">
+            A4 {reference} ▾
+          </span>
+        </button>
+      </div>
+
+      <div className="flex min-h-0 w-full flex-1 flex-col overflow-y-auto px-[clamp(1rem,4vw,1.75rem)]">
+        {mode === "ear" ? (
+          <EarMode key="ear" tuning={tuning} reference={reference} />
+        ) : (
+          <MicMode key="mic" tuning={tuning} reference={reference} />
+        )}
+
+        {editing && (
+          <div className="mt-4">
+            <TuningEditor
+              initial={tuning.strings}
+              initialName={`${tuning.name} variant`}
+              reference={reference}
+              onSave={saveTuning}
+              onCancel={() => setEditing(false)}
+            />
+          </div>
+        )}
+
+        {tuning.userDefined && !editing && (
+          <button
+            type="button"
+            onClick={deleteTuning}
+            className="mt-3 self-center rounded-xl border border-edge px-4 py-2 text-xs text-ink-muted hover:border-accent-edge hover:text-accent"
+          >
+            Delete “{tuning.name}”
+          </button>
+        )}
+
+        {storageFailed && (
+          <p className="mt-3 text-center text-xs text-warn">
+            This browser would not save the tuning — it will be gone when you
+            reload.
+          </p>
+        )}
+
+        <footer className="mt-auto py-3 text-center">
+          <span className="font-mono text-[11px] tracking-wider text-ink-faint">
+            {tuning.strings.map(formatNote).join(" ")}
+          </span>
+        </footer>
+      </div>
+
+      <TuningSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
         presets={PRESETS}
         saved={saved}
         value={tuningId}
-        onChange={changeTuning}
+        onPick={changeTuning}
+        reference={reference}
+        onReference={changeReference}
+        onBuildOwn={() => {
+          stop();
+          setEditing(true);
+        }}
       />
-
-      {/* Keyed so switching mode tears the old one down rather than leaving a
-          microphone open or a note ringing. */}
-      {mode === "ear" ? (
-        <EarMode key="ear" tuning={tuning} reference={reference} />
-      ) : (
-        <MicMode key="mic" tuning={tuning} reference={reference} />
-      )}
-
-      <ReferencePitchControl value={reference} onChange={changeReference} />
-
-      {editing ? (
-        <TuningEditor
-          initial={tuning.strings}
-          initialName={`${tuning.name} variant`}
-          reference={reference}
-          onSave={saveTuning}
-          onCancel={() => setEditing(false)}
-        />
-      ) : (
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              stop();
-              setEditing(true);
-            }}
-            className="flex-1 rounded-xl border border-edge py-3 text-sm text-ink-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright"
-          >
-            {tuning.userDefined ? "Build another" : "Build your own"}
-          </button>
-          {tuning.userDefined && (
-            <button
-              type="button"
-              onClick={deleteTuning}
-              className="rounded-xl border border-edge px-4 py-3 text-sm text-ink-muted hover:border-accent-edge hover:text-accent-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright"
-            >
-              Delete
-            </button>
-          )}
-        </div>
-      )}
-
-      {storageFailed && (
-        <p className="text-center text-xs text-accent-bright">
-          This browser would not save the tuning — it will be gone when you
-          reload.
-        </p>
-      )}
-
-      <footer className="mt-auto pt-4 text-center text-xs text-ink-faint">
-        {tuning.name} ·{" "}
-        <span className="font-mono">
-          {tuning.strings.map(formatNote).join(" ")}
-        </span>
-      </footer>
-    </main>
+    </div>
   );
 }
