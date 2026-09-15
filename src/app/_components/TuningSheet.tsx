@@ -112,11 +112,14 @@ export function TuningSheet({
 
   const filtered = useMemo(() => {
     const needle = normalise(query);
-    if (!needle) return groups;
+    // Empty groups are dropped whether or not there is a search: with no
+    // saved tunings, "Yours" was rendering as a heading with nothing under it.
     return groups
       .map((group) => ({
         ...group,
-        items: group.items.filter((item) => normalise(item.haystack).includes(needle)),
+        items: needle
+          ? group.items.filter((item) => normalise(item.haystack).includes(needle))
+          : group.items,
       }))
       .filter((group) => group.items.length > 0);
   }, [groups, query]);
