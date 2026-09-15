@@ -46,17 +46,6 @@
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 }
 
-/*
- * The side-by-side layout.
- *
- * Gated on height, not width. The reason for turning the layout on its side
- * is that a tall headstock does not fit in a short window — a wide desktop
- * window is usually tall too, and splitting it there just leaves the tuner
- * as two objects floating in a void. This fires for landscape phones and
- * short laptop windows, which is where stacking genuinely fails.
- */
-@custom-variant wide-short (@media (min-width: 780px) and (max-height: 560px));
-
 html {
   color-scheme: dark;
 }

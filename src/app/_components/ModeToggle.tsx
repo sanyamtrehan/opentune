@@ -28,7 +28,7 @@ export function ModeToggle({ value, onChange }: ModeToggleProps) {
     <div
       role="tablist"
       aria-label="Tuning mode"
-      className="flex flex-none rounded-xl border border-edge bg-panel p-[3px]"
+      className="flex flex-none rounded-[12px] border border-edge bg-panel p-[3px]"
     >
       {MODES.map(({ mode, label, hint }) => {
         const selected = mode === value;
@@ -40,7 +40,7 @@ export function ModeToggle({ value, onChange }: ModeToggleProps) {
             aria-selected={selected}
             title={hint}
             onClick={() => onChange(mode)}
-            className={`cursor-pointer rounded-[0.5625rem] px-[1.125rem] py-2 text-[13px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright ${
+            className={`cursor-pointer rounded-[9px] px-[18px] py-2 text-[13px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright ${
               selected ? "bg-accent-bg text-accent" : "text-ink-muted hover:text-ink"
             }`}
           >

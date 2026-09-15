@@ -279,17 +279,16 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
 
   return (
     /*
-     * In a short, wide window the stage and controls sit side by side with
-     * the headstock on the right. See the `wide-short` variant.
-     *
-     * The stage is `flex-[1_1_0]`, not `auto`. With an auto basis its width
-     * depends on the SVG, whose width depends on the stage — the browser
-     * resolves that circle by overflowing, which clipped the headstock off
-     * the bottom of the screen. A zero basis makes the width a share of the
-     * row, so the SVG has something definite to letter-box itself into.
+     * Above 780px the stage and the controls sit side by side with the
+     * headstock on the right, per the v2 design. The stage box carries the
+     * drawing's aspect ratio and sizes from its height, which is what keeps
+     * the pegs landing on the posts.
      */
-    <div className="flex min-h-0 w-full flex-1 flex-col gap-2 overflow-hidden wide-short:flex-row-reverse wide-short:items-stretch wide-short:justify-center wide-short:gap-6 wide-short:py-2">
-      <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden wide-short:flex-[1_1_0]">
+    <div className="flex min-h-0 w-full flex-1 flex-col min-[780px]:mx-auto min-[780px]:max-w-[1080px] min-[780px]:flex-row-reverse min-[780px]:items-center min-[780px]:justify-center min-[780px]:gap-[clamp(24px,5vw,72px)] min-[780px]:px-[clamp(16px,4vw,40px)] min-[780px]:pt-2 min-[780px]:pb-1">
+      {/* `w-auto` in the wide branch matters: leaving width:100% here lets the
+          stage claim the whole row and squeezes the controls column down to
+          its minimum content width. */}
+      <div className="flex min-h-0 w-full flex-1 items-center justify-center px-[clamp(12px,3vw,24px)] min-[780px]:h-full min-[780px]:w-auto min-[780px]:flex-[0_1_auto] min-[780px]:p-0">
         <Headstock
           strings={tuning.strings}
           selected={selected}
@@ -300,10 +299,10 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
         />
       </div>
 
-      <div className="flex flex-none flex-col wide-short:flex-[0_0_19rem] wide-short:justify-center wide-short:gap-3 wide-short:self-center">
+      <div className="flex min-h-0 w-full flex-none flex-col justify-center min-[780px]:w-auto min-[780px]:flex-[0_1_360px] min-[780px]:gap-5">
 
       <Readout
-        note={target ? target.note : note}
+        note={target?.note ?? null}
         cents={target?.cents ?? null}
         stringNumber={6 - (target?.index ?? selected)}
         idleHint={
@@ -313,11 +312,11 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
               ? mode === "follow"
                 ? "Play any string."
                 : `Play string ${6 - selected}.`
-              : "Tap a peg to hear it, or start listening."
+              : "Tap a peg to begin."
         }
       />
 
-      <div className="mx-auto flex w-full flex-none flex-col gap-2 px-[clamp(1rem,4vw,1.75rem)] pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      <div className="mx-auto flex w-full max-w-[560px] flex-none flex-col gap-2 px-[clamp(16px,4vw,28px)] pt-2 pb-[max(14px,env(safe-area-inset-bottom))]">
         {/* One dot per string, so progress through a tuning is visible
             without reading six labels. */}
         <div className="flex items-center justify-center gap-[7px]">
@@ -344,7 +343,7 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
             type="button"
             onClick={listening ? stopListening : startListening}
             disabled={starting || !supported}
-            className={`flex-1 cursor-pointer rounded-[0.8125rem] py-[0.9375rem] text-[15px] font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+            className={`flex-1 cursor-pointer rounded-[13px] py-[15px] text-[15px] font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
               listening
                 ? "bg-panel-raised text-accent shadow-[inset_0_0_0_1px_#3a2a0a]"
                 : "bg-accent text-ground"
@@ -356,7 +355,7 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
             type="button"
             onClick={() => hear(selected)}
             disabled={!supported}
-            className="flex-none basis-[40%] cursor-pointer rounded-[0.8125rem] border border-edge bg-panel py-[0.9375rem] text-sm text-ink hover:border-accent-edge disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex-none basis-[40%] cursor-pointer rounded-[13px] border border-[#262626] bg-panel py-[15px] text-[14px] text-[#d8d8d8] hover:border-accent-edge disabled:cursor-not-allowed disabled:opacity-60"
           >
             Hear {note ? formatNote(note) : "—"}
           </button>

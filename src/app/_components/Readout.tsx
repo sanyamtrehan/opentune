@@ -37,11 +37,11 @@ export function Readout({ note, cents, stringNumber, idleHint }: ReadoutProps) {
 
   return (
     <section
-      className="min-h-[3.25rem] flex-none px-[clamp(1rem,4vw,1.75rem)] pt-0.5 text-center"
+      className="min-h-[min(52px,8vh)] flex-none px-[clamp(16px,4vw,28px)] pt-[2px] text-center"
       aria-live="polite"
       aria-label="Tuning readout"
     >
-      <div className="text-2xl leading-tight font-bold tracking-tight">
+      <div className="text-[24px] leading-[1.2] font-bold tracking-[-0.01em]">
         {note === null ? (
           "—"
         ) : (

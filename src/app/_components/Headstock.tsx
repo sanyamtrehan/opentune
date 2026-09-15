@@ -3,14 +3,13 @@
 /**
  * The tuning stage: a dial across the top, a headstock below it, six pegs.
  *
- * One drawing, because it is one instrument. The needle pivots at the nut end
- * of the headstock, so the thing you are reading and the thing you are turning
- * occupy the same place on screen — you never have to look away from the pegs
- * to see how far off you are.
+ * Geometry and styling follow docs/design/opentune-v2.reference.html exactly
+ * — the viewBox, every path, the peg sizes and the needle maths. Do not
+ * "improve" the numbers here without changing the design first.
  *
- * The wood, strings and dial are SVG; the pegs are real HTML buttons
- * positioned over it, so they are focusable, labelled and big enough to hit
- * with a thumb. Geometry comes from docs/DESIGN.md.
+ * The SVG fills a box with the drawing's own aspect ratio, and the pegs are
+ * HTML buttons positioned over that box as percentages. Because the box and
+ * the drawing share a ratio, the percentages land exactly on the posts.
  */
 
 import { formatNote } from "@/core/music/notes.ts";
@@ -43,9 +42,6 @@ const POST_X = { left: 124, right: 236 };
 const BAR_X = { left: 92, right: 242 };
 const BUTTON_X = { left: 50, right: 310 };
 
-/** Peg diameter, in drawing units. */
-const PEG_SIZE = 70;
-
 const NUT_Y = 398;
 
 export type StringState = "idle" | "active" | "tuned";
@@ -55,6 +51,12 @@ function stateOf(index: number, selected: number | null, tuned: readonly number[
   return index === selected ? ("active" as const) : ("idle" as const);
 }
 
+const STROKE: Record<StringState, string> = {
+  idle: "#b9b4ac",
+  active: "var(--color-accent)",
+  tuned: "var(--color-tuned)",
+};
+
 /** The line a string takes: post, over the nut, then off the bottom edge
  *  fanning outwards, the way strings actually run over a fretboard. */
 function stringPath(index: number): string {
@@ -63,12 +65,6 @@ function stringPath(index: number): string {
   const endX = 180 + (geometry.nutX - 180) * 1.18;
   return `M${postX} ${geometry.postY} L${geometry.nutX} ${NUT_Y} L${endX} ${VIEW_HEIGHT}`;
 }
-
-const STROKE: Record<StringState, string> = {
-  idle: "var(--color-string)",
-  active: "var(--color-accent)",
-  tuned: "var(--color-tuned)",
-};
 
 export interface HeadstockProps {
   strings: Note[];
@@ -100,34 +96,30 @@ export function Headstock({
       : Math.max(-MAX_DEGREES, Math.min(MAX_DEGREES, cents * DEGREES_PER_CENT));
 
   return (
-    /*
-     * The SVG sizes itself: `preserveAspectRatio` letter-boxes the drawing
-     * inside whatever box it is given, so it can never overflow in either
-     * direction. The pegs live inside it as foreignObject rather than as
-     * HTML positioned on top, because anything positioned over the SVG has
-     * to guess where the drawing actually landed — and guessing wrong on a
-     * tall phone pushed half the pegs off the screen.
-     */
-    <svg
-      viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
-      preserveAspectRatio="xMidYMid meet"
-      className="block h-full max-h-full w-full"
+    <div
+      className="relative h-full max-h-full w-auto max-w-full"
+      style={{ aspectRatio: `${VIEW_WIDTH} / ${VIEW_HEIGHT}` }}
     >
+      <svg
+        viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
+        preserveAspectRatio="xMidYMid meet"
+        className="block h-full w-full"
+        aria-hidden="true"
+      >
         <defs>
           <linearGradient id="ot-wood" x1="0.1" y1="0" x2="0.9" y2="1">
-            <stop offset="0%" stopColor="var(--color-wood-light)" />
-            <stop offset="45%" stopColor="var(--color-wood-mid)" />
-            <stop offset="100%" stopColor="var(--color-wood-dark)" />
+            <stop offset="0%" stopColor="#5a4130" />
+            <stop offset="45%" stopColor="#3a2a1c" />
+            <stop offset="100%" stopColor="#211710" />
           </linearGradient>
           <linearGradient id="ot-board" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stopColor="#241a12" />
             <stop offset="50%" stopColor="#31231816" />
             <stop offset="100%" stopColor="#1b120c" />
           </linearGradient>
-          {/* The fretboard does not end, it leaves the frame. */}
           <linearGradient id="ot-fade" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--color-ground)" stopOpacity="0" />
-            <stop offset="100%" stopColor="var(--color-ground)" stopOpacity="1" />
+            <stop offset="0%" stopColor="#0a0a0a" stopOpacity="0" />
+            <stop offset="100%" stopColor="#0a0a0a" stopOpacity="1" />
           </linearGradient>
           <linearGradient id="ot-metal" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="#d8d8d8" />
@@ -165,22 +157,10 @@ export function Headstock({
           <line x1="254.9" y1="46.8" x2="244.2" y2="58.7" />
         </g>
         <line x1="180" y1="18" x2="180" y2="36" stroke="#4c7c63" strokeWidth="2.4" />
-        <text
-          x="62"
-          y="114"
-          fill="var(--color-ink-muted)"
-          fontFamily="var(--font-mono)"
-          fontSize="13"
-        >
+        <text x="62" y="114" fill="#9a9a9a" fontFamily="JetBrains Mono, monospace" fontSize="13">
           −50
         </text>
-        <text
-          x="270"
-          y="114"
-          fill="var(--color-ink-muted)"
-          fontFamily="var(--font-mono)"
-          fontSize="13"
-        >
+        <text x="270" y="114" fill="#9a9a9a" fontFamily="JetBrains Mono, monospace" fontSize="13">
           +50
         </text>
 
@@ -199,7 +179,7 @@ export function Headstock({
         <path
           d="M115 214 C115 158 138 126 180 126 C222 126 245 158 245 214 L243 384 C243 396 236 402 226 402 L134 402 C124 402 117 396 117 384 Z"
           fill="none"
-          stroke="var(--color-wood-edge)"
+          stroke="#6a4e38"
           strokeWidth="1"
           opacity="0.5"
         />
@@ -217,7 +197,7 @@ export function Headstock({
           strokeWidth="2"
           opacity="0.45"
         />
-        <rect x="122" y="396" width="116" height="11" rx="3.5" fill="var(--color-nut)" />
+        <rect x="122" y="396" width="116" height="11" rx="3.5" fill="#efe9de" />
 
         {strings.map((note, index) => {
           const state = stateOf(index, selected, tuned);
@@ -234,20 +214,6 @@ export function Headstock({
             />
           );
         })}
-
-        {/* The pluck, as a copy of the string that blooms and dies. Keyed by
-            the nonce so replaying the same string restarts the animation
-            rather than being treated as no change. */}
-        {pluck && (
-          <path
-            key={pluck.nonce}
-            d={stringPath(pluck.index)}
-            fill="none"
-            stroke={STROKE[stateOf(pluck.index, selected, tuned)]}
-            strokeLinecap="round"
-            className="string-ring"
-          />
-        )}
 
         {GEOMETRY.map((geometry, index) => (
           <g key={index}>
@@ -268,19 +234,24 @@ export function Headstock({
               stroke="#4a4a4a"
               strokeWidth="1.2"
             />
-            <circle
-              cx={POST_X[geometry.side]}
-              cy={geometry.postY}
-              r="3.4"
-              fill="#3a3a3a"
-            />
+            <circle cx={POST_X[geometry.side]} cy={geometry.postY} r="3.4" fill="#3a3a3a" />
           </g>
         ))}
 
-        {/* Overhangs the drawing on every side: the strings have round caps
-            that poke past the last row of pixels, and clipped string ends
-            read as six bright dots along the bottom edge. */}
-        <rect x="96" y="436" width="168" height="112" fill="url(#ot-fade)" />
+        <rect x="104" y="454" width="152" height="86" fill="url(#ot-fade)" />
+
+        {/* The pluck, as a copy of the string that blooms and dies. Keyed by
+            the nonce so replaying the same string restarts the animation. */}
+        {pluck && (
+          <path
+            key={pluck.nonce}
+            d={stringPath(pluck.index)}
+            fill="none"
+            stroke={STROKE[stateOf(pluck.index, selected, tuned)]}
+            strokeLinecap="round"
+            className="string-ring"
+          />
+        )}
 
         {/* The needle, and the hub it turns on. */}
         <g
@@ -302,59 +273,62 @@ export function Headstock({
           />
           <circle cx={PIVOT.x} cy="42" r="4" fill="var(--color-accent)" />
         </g>
-        <circle
-          cx={PIVOT.x}
-          cy={PIVOT.y}
-          r="11"
-          fill="#120e09"
-          stroke="#4a3a24"
-          strokeWidth="2"
-        />
+        <circle cx={PIVOT.x} cy={PIVOT.y} r="11" fill="#120e09" stroke="#4a3a24" strokeWidth="2" />
         <circle cx={PIVOT.x} cy={PIVOT.y} r="3.5" fill="var(--color-accent)" />
+      </svg>
+
       {strings.map((note, index) => {
         const geometry = GEOMETRY[index];
         const state = stateOf(index, selected, tuned);
         const label = formatNote(note);
+        const ring =
+          state === "tuned"
+            ? "var(--color-tuned)"
+            : state === "active"
+              ? "var(--color-accent)"
+              : "#2b2b2b";
+        const text =
+          state === "tuned"
+            ? "var(--color-tuned)"
+            : state === "active"
+              ? "var(--color-accent)"
+              : "#c9c9c9";
         return (
-          <foreignObject
+          <button
             key={index}
-            x={BUTTON_X[geometry.side] - PEG_SIZE / 2}
-            y={geometry.postY - PEG_SIZE / 2}
-            width={PEG_SIZE}
-            height={PEG_SIZE}
-            overflow="visible"
-          >
-            <button
-              type="button"
-              onClick={() => onSelect(index)}
-              aria-pressed={state !== "idle"}
-              aria-label={`String ${6 - index}, ${label}${
-                state === "tuned" ? ", in tune" : ""
-              }`}
-              className={[
-                "flex h-full w-full cursor-pointer flex-col items-center justify-center",
-                "gap-[2px] rounded-full border-solid",
-                "transition-[background-color,border-color,box-shadow,scale] duration-150",
-                "active:scale-95",
-                state === "tuned" ? "tuned-pop" : "",
-                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright",
+            type="button"
+            onClick={() => onSelect(index)}
+            aria-pressed={state !== "idle"}
+            aria-label={`String ${6 - index}, ${label}${
+              state === "tuned" ? ", in tune" : ""
+            }`}
+            className={`absolute flex aspect-square w-[19.5%] min-w-[54px] -translate-x-1/2 -translate-y-1/2 cursor-pointer flex-col items-center justify-center gap-[2px] rounded-full border-solid p-0 transition-[background-color,border-color,box-shadow] duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright ${
+              state === "tuned" ? "tuned-pop" : ""
+            }`}
+            style={{
+              left: `${(BUTTON_X[geometry.side] / VIEW_WIDTH) * 100}%`,
+              top: `${(geometry.postY / VIEW_HEIGHT) * 100}%`,
+              borderWidth: state === "idle" ? "1.5px" : "2.5px",
+              borderColor: ring,
+              backgroundColor:
                 state === "tuned"
-                  ? "border-[2.5px] border-tuned bg-tuned-bg text-tuned shadow-[0_0_22px_-6px_var(--color-tuned)]"
+                  ? "var(--color-tuned-bg)"
                   : state === "active"
-                    ? "border-[2.5px] border-accent bg-accent-bg text-accent shadow-[0_0_22px_-6px_var(--color-accent)]"
-                    : "border-[1.5px] border-edge-strong bg-panel-raised text-[#c9c9c9] hover:border-accent-edge",
-              ].join(" ")}
-            >
-              {/* Sizes are in SVG user units, so they scale with the drawing
-                  instead of needing viewport-relative guesses. */}
-              <span className="text-[19px] leading-none font-medium">{label}</span>
-              <span className="font-mono text-[9px] leading-none tracking-[0.08em]">
-                {state === "tuned" ? "TUNED" : state === "active" ? "ACTIVE" : ""}
-              </span>
-            </button>
-          </foreignObject>
+                    ? "var(--color-accent-bg)"
+                    : "#181818",
+              boxShadow: state === "idle" ? "none" : `0 0 22px -6px ${ring}`,
+              color: text,
+            }}
+          >
+            <span className="text-[clamp(14px,2.2vh,20px)] leading-none font-medium">
+              {label}
+            </span>
+            <span className="font-mono text-[9px] leading-none tracking-[0.08em]">
+              {state === "tuned" ? "TUNED" : state === "active" ? "ACTIVE" : ""}
+            </span>
+          </button>
         );
       })}
-    </svg>
+    </div>
   );
 }

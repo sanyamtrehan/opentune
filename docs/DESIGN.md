@@ -88,20 +88,35 @@ Single screen, `100dvh`, nothing scrolls except the tuning sheet.
 └─────────────────────────────────────────┘
 ```
 
-Everything sits in a **phone-shaped column, centred** (`max-width: 27rem`) at
-any window size. This is a one-screen instrument, not a page that should
-sprawl across a monitor.
+At **≥780px** the stage and the controls sit side by side (`row-reverse`:
+headstock right, controls left), inside a 1080px centred `main`.
 
-The stage and controls sit side by side only in a **short, wide** window —
-`(min-width: 780px) and (max-height: 560px)`, the `wide-short` variant. The
-reason for turning the layout on its side is that a tall headstock does not
-fit in a short window, which is a question about height. Gating it on width
-instead put a desktop browser into the split layout, where it looked empty
-and wrong.
+Exact values, because paraphrasing them went wrong once:
 
-Because the column is a fixed width regardless of the window, **breakpoints
-inside it must be container queries** (`@[34rem]:`), not viewport ones: `sm:`
-is true on a 1280px monitor even when the element is 432px wide.
+| Element  | Narrow                                    | ≥780px                                        |
+|----------|-------------------------------------------|-----------------------------------------------|
+| `main`   | `flex-col`                                | `row-reverse`, `max-w-1080`, gap `clamp(24,5vw,72)`, pad `clamp(16,4vw,40)` |
+| stage    | `flex:1; width:100%; px clamp(12,3vw,24)` | `flex:0 1 auto; height:100%; width:auto; p:0`  |
+| aside    | `flex:none; width:100%`                   | `flex:0 1 360px; gap:20`                       |
+| controls | `max-w-560`, centred, pad `clamp(16,4vw,28)` | same                                        |
+
+The stage **must** drop `width:100%` in the wide branch. Leaving it on lets
+the stage claim the whole row and squeezes the controls column down to its
+minimum content width — which is subtle enough on a mockup and obvious the
+moment you screenshot it.
+
+### Known rough edges in the design itself
+
+Both of these are reproduced faithfully, and both are visible in
+`scripts/screenshot.sh` output against the reference:
+
+- At 390px the tagline wraps onto three lines and the nav wraps "My Chords"
+  onto two. The header simply has more in it than fits a phone.
+- At 1280x800 the left half of the screen is empty and the headstock runs off
+  the bottom edge. The split is gated on width, but the thing that makes a
+  headstock not fit is a *short* window, and a desktop browser is tall.
+
+Fixing either is a change to the design, not an implementation bug.
 
 ## Headstock geometry
 

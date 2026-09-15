@@ -83,13 +83,10 @@ export function Tuner() {
   }, [tuningId]);
 
   return (
-    /* A phone-shaped column, centred, whatever the window. This is a
-       one-screen instrument, not a page that should sprawl to fill a
-       monitor. */
-    <div className="relative mx-auto flex h-[100dvh] w-full max-w-[27rem] flex-col overflow-hidden @container wide-short:max-w-[62rem]">
+    <div className="relative flex h-[100dvh] w-full flex-col overflow-hidden">
       <Header />
 
-      <div className="flex w-full flex-none items-center gap-2.5 px-[clamp(1rem,4vw,1.75rem)] pb-1.5 wide-short:mx-auto wide-short:max-w-[40rem]">
+      <div className="mx-auto flex w-full max-w-[620px] flex-none items-center gap-[10px] px-[clamp(16px,4vw,28px)] pb-1.5">
         <ModeToggle value={mode} onChange={changeMode} />
 
         {/* Tuning and reference pitch share one control: they are the same
@@ -98,7 +95,7 @@ export function Tuner() {
         <button
           type="button"
           onClick={() => setSheetOpen(true)}
-          className="flex min-w-0 flex-1 cursor-pointer items-center justify-between gap-2.5 rounded-xl border border-edge bg-panel px-3.5 py-[0.5625rem] text-left text-sm text-ink hover:border-accent-edge"
+          className="flex min-w-0 flex-1 cursor-pointer items-center justify-between gap-[10px] rounded-[12px] border border-edge bg-panel px-[14px] py-[9px] text-left text-[14px] text-ink hover:border-accent-edge"
         >
           <span className="truncate">{tuning.name}</span>
           <span className="flex-none font-mono text-[11px] whitespace-nowrap text-ink-faint">
