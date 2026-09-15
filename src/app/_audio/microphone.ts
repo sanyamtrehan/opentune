@@ -14,8 +14,10 @@ import { unlock } from "./context";
 const WORKLET_URL = "/pitch-worklet.js";
 
 export interface ListenOptions {
-  /** Frame length in samples, sized for the lowest string in the tuning. */
-  windowSize: number;
+  /**
+   * The range worth searching, from the tuning. The worklet derives its own
+   * frame length from `minHz` and the real sample rate — which only it knows.
+   */
   minHz: number;
   maxHz: number;
 }

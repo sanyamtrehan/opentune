@@ -14,6 +14,7 @@
  */
 
 import type { PitchReading } from "../music/types.ts";
+import { decimate, decimationFor } from "./decimate.ts";
 
 export interface DetectOptions {
   /** Lowest pitch worth looking for. Drop A on a 6-string is about 55 Hz. */
@@ -26,6 +27,11 @@ export interface DetectOptions {
    * suggestion and holds up well on guitar.
    */
   peakThreshold?: number;
+  /**
+   * Downsampling factor for `analysePitch`. Omit to choose automatically from
+   * the search range; 1 disables it.
+   */
+  decimation?: number;
 }
 
 const DEFAULTS = {
@@ -185,4 +191,25 @@ export function detectPitch(
   if (hz < minHz || hz > maxHz) return SILENT;
 
   return { hz, clarity };
+}
+
+/**
+ * Detect pitch, downsampling first so it is cheap enough to run on the audio
+ * thread.
+ *
+ * `detectPitch` itself stays exact and untouched; this wraps it. The split
+ * matters because the decimation is a performance decision and the detector
+ * is a correctness one, and they should be testable apart.
+ */
+export function analysePitch(
+  frame: Float32Array,
+  sampleRate: number,
+  options: DetectOptions = {},
+): PitchReading {
+  const maxHz = options.maxHz ?? DEFAULTS.maxHz;
+  const factor = options.decimation ?? decimationFor(sampleRate, maxHz);
+  if (factor <= 1) return detectPitch(frame, sampleRate, options);
+
+  const reduced = decimate(frame, factor);
+  return detectPitch(reduced, sampleRate / factor, options);
 }

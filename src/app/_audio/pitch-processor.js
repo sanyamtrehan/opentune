@@ -2,8 +2,8 @@
  * AudioWorklet shell around `detectPitch`.
  *
  * Deliberately thin: it accumulates 128-sample quanta into a frame long
- * enough for the string being listened to, calls the detector, and posts the
- * reading back. All the algorithm lives in src/core/audio/detect-pitch.ts,
+ * enough for the lowest string in the tuning, calls the detector, and posts
+ * the reading back. All the algorithm lives in src/core/audio/detect-pitch.ts,
  * which is prepended to this file by scripts/build-worklet.mjs — so there is
  * one implementation, tested in Node, and no copy to drift.
  *
@@ -30,7 +30,10 @@ class PitchProcessor extends AudioWorkletProcessor {
       Math.round((settings.hopSeconds || DEFAULT_HOP_SECONDS) * sampleRate),
     );
 
-    this.resize(settings.windowSize || 4096);
+    // The window is derived here rather than passed in, because only this
+    // scope knows the real sample rate. The main thread used to compute it
+    // against a hardcoded 48000, which was wrong on every other device.
+    this.resize(windowSizeFor(this.minHz, sampleRate));
     this.sinceAnalysis = 0;
     this.silent = true;
 
@@ -40,7 +43,7 @@ class PitchProcessor extends AudioWorkletProcessor {
       const message = event.data || {};
       if (message.minHz > 0) this.minHz = message.minHz;
       if (message.maxHz > 0) this.maxHz = message.maxHz;
-      if (message.windowSize > 0) this.resize(message.windowSize);
+      if (message.minHz > 0) this.resize(windowSizeFor(this.minHz, sampleRate));
     };
   }
 
@@ -92,7 +95,10 @@ class PitchProcessor extends AudioWorkletProcessor {
     }
     this.silent = false;
 
-    const reading = detectPitch(this.frame, sampleRate, {
+    // analysePitch, not detectPitch: the undecimated version costs about
+    // 3.2ms against a 2.67ms render quantum, which stalls this thread and
+    // stops readings arriving at all.
+    const reading = analysePitch(this.frame, sampleRate, {
       minHz: this.minHz,
       maxHz: this.maxHz,
     });

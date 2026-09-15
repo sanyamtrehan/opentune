@@ -22,7 +22,6 @@ import {
 import { noteToFrequency } from "@/core/music/frequency.ts";
 import { formatNote } from "@/core/music/notes.ts";
 import type { Tuning } from "@/core/music/types.ts";
-import { windowSizeFor } from "@/core/audio/detect-pitch.ts";
 import {
   IN_TUNE_CENTS,
   searchRange,
@@ -215,16 +214,7 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
     setProblem(null);
     try {
       const { minHz, maxHz } = searchRange(tuning.strings, reference);
-      listener.current = await listen(
-        {
-          // Size the frame for the lowest string: it needs the longest window,
-          // and one frame has to serve whichever string is played.
-          windowSize: windowSizeFor(minHz, 48000),
-          minHz,
-          maxHz,
-        },
-        onReading,
-      );
+      listener.current = await listen({ minHz, maxHz }, onReading);
       setListening(true);
     } catch (error) {
       setProblem(
@@ -239,7 +229,7 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
   useEffect(() => {
     if (!listener.current) return;
     const { minHz, maxHz } = searchRange(tuning.strings, reference);
-    listener.current.update({ minHz, maxHz, windowSize: windowSizeFor(minHz, 48000) });
+    listener.current.update({ minHz, maxHz });
     history.current = [];
     following.current = null;
     smoothed.current = null;
