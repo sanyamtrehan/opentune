@@ -24,6 +24,15 @@ viewport narrower than 500px; ask for 390 and it quietly gives you 500 and
 scales the image, which looks exactly like a layout overflowing to the right.
 That false reading cost an afternoon.
 
+**A screenshot from a fresh profile can disagree with a real browser.** The
+service worker used to register on `localhost`, and once installed it served
+cached JS and CSS indefinitely, because dev asset URLs are reused between
+rebuilds. The page then showed current markup in stale styles — which reads as
+badly broken CSS, and is invisible to a headless run that starts with no
+worker installed. It is now production-only and clears itself in dev, but if a
+screenshot and the browser ever disagree again, check for a service worker
+before you touch the layout.
+
 ## Palette
 
 Warm dark. The stated use case is a phone at arm's length in a dim rehearsal

@@ -7,9 +7,13 @@
  * is gone, and always have the page itself available for a cold offline start.
  *
  * Bump CACHE when the strategy changes; old caches are deleted on activate.
+ *
+ * This is only ever registered in a production build. Running it against a
+ * dev server serves stale JS and CSS forever, because dev asset URLs get
+ * reused between rebuilds — see _components/ServiceWorker.tsx.
  */
 
-const CACHE = "opentune-v1";
+const CACHE = "opentune-v2";
 
 /** The minimum needed to open the tuner with no network at all. */
 const SHELL = ["/", "/manifest.webmanifest", "/icon-192.png", "/icon-512.png"];
