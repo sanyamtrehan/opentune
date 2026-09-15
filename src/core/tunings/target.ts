@@ -157,3 +157,28 @@ export function searchRange(
     maxHz: Math.max(...frequencies) * margin,
   };
 }
+
+/**
+ * Frequency bounds for one string rather than the whole tuning.
+ *
+ * Narrowing the search is the single biggest win available for needle
+ * latency. The frame has to be long enough to hold a few periods of the
+ * *lowest* pitch in the range, so a range spanning the whole tuning forces a
+ * 92ms window on every string — about 30 periods of a high E, most of it
+ * decay. Ask only about the string being tuned and the high E needs 23ms.
+ *
+ * Only safe when the player has chosen the string. A range this tight cannot
+ * see the others, so the follow path keeps the full range.
+ */
+export function stringRange(
+  strings: Note[],
+  index: number,
+  reference: ReferencePitch = A440,
+  marginSemitones = 4,
+): { minHz: number; maxHz: number } | null {
+  const note = strings[index];
+  if (!note) return null;
+  const hz = noteToFrequency(note, reference);
+  const margin = 2 ** (marginSemitones / 12);
+  return { minHz: hz / margin, maxHz: hz * margin };
+}

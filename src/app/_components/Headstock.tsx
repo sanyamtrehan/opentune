@@ -259,7 +259,10 @@ export function Headstock({
             transformBox: "view-box",
             transformOrigin: `${PIVOT.x}px ${PIVOT.y}px`,
             transform: `rotate(${angle}deg)`,
-            transition: "transform 90ms linear",
+            // Short: long enough to stop the needle jittering between
+            // readings, short enough not to add to the latency the readings
+            // already carry.
+            transition: "transform 60ms linear",
           }}
         >
           <line

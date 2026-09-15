@@ -12,6 +12,7 @@ import {
   nearestString,
   searchRange,
   semitonesOff,
+  stringRange,
   targetString,
   trackString,
   verdictFor,
@@ -181,4 +182,26 @@ test("far-off readings are flagged rather than stated confidently", () => {
   assert.equal(isAmbiguous(-300), true);
   assert.equal(semitonesOff(300), 3);
   assert.equal(semitonesOff(-50), -0.5);
+});
+
+test("a single string's range is tight enough to shorten the window", () => {
+  const whole = searchRange(standard);
+  const high = stringRange(standard, 5)!;
+  const low = stringRange(standard, 0)!;
+
+  // Each string's range sits inside the tuning's range...
+  assert.ok(high.minHz > whole.minHz && high.maxHz <= whole.maxHz + 1e-9);
+  assert.ok(low.minHz >= whole.minHz - 1e-9);
+
+  // ...and the high string's floor is far above the tuning's, which is the
+  // whole point: the window length follows the lowest pitch searched for.
+  assert.ok(high.minHz > whole.minHz * 3, `${high.minHz} vs ${whole.minHz}`);
+
+  // Four semitones of slack either way, so a badly out string is still seen.
+  const e4 = noteToFrequency(standard[5]);
+  assert.ok(Math.abs(1200 * Math.log2(high.minHz / e4) + 400) < 1);
+  assert.ok(Math.abs(1200 * Math.log2(high.maxHz / e4) - 400) < 1);
+
+  assert.equal(stringRange(standard, 9), null);
+  assert.ok(stringRange(standard, 0, 432)!.minHz < low.minHz);
 });

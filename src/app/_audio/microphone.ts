@@ -20,6 +20,8 @@ export interface ListenOptions {
    */
   minHz: number;
   maxHz: number;
+  /** How often to analyse, in seconds. Shorter is a more responsive needle. */
+  hopSeconds?: number;
 }
 
 export interface MicReading extends PitchReading {

@@ -25,6 +25,7 @@ import type { Tuning } from "@/core/music/types.ts";
 import {
   IN_TUNE_CENTS,
   searchRange,
+  stringRange,
   targetString,
   trackString,
 } from "@/core/tunings/target.ts";
@@ -41,8 +42,14 @@ import type { Listener, MicReading } from "../_audio/microphone";
 /** Below this, a reading is a room rather than a string. */
 const MIN_CLARITY = 0.9;
 
-/** Readings kept for the median. Odd, and short enough to stay responsive. */
-const MEDIAN_WINDOW = 5;
+/**
+ * Readings kept for the median. Odd, and short enough to stay responsive.
+ *
+ * Three, not five: the median exists to throw away the occasional frame that
+ * lands an octave out, and three is enough for that. Five held 250ms of
+ * history and was a large part of why the needle felt laggy.
+ */
+const MEDIAN_WINDOW = 3;
 
 /** Clear the display after this long with nothing usable. */
 const HOLD_MS = 1200;
@@ -57,8 +64,22 @@ const UNTUNED_CENTS = 10;
 /** How long the reference tone rings. Must match pluck-voice. */
 const TONE_MS = 4000;
 
-/** Smoothing on the needle. The raw reading is too jittery to point at. */
-const SMOOTHING = 0.35;
+/**
+ * Smoothing on the needle, as an EMA coefficient.
+ *
+ * Two values, because the needle has two jobs. While the player is turning a
+ * peg the reading is genuinely moving and the needle should keep up; once it
+ * is nearly there, the remaining movement is noise and should be damped. A
+ * single coefficient has to choose between feeling laggy and feeling jittery.
+ */
+const SMOOTHING_SETTLED = 0.3;
+const SMOOTHING_MOVING = 0.7;
+
+/** Above this much change between readings, assume the peg is being turned. */
+const MOVING_CENTS = 15;
+
+/** How often the worklet analyses. 40 readings a second. */
+const HOP_SECONDS = 0.025;
 
 /** Audio support cannot change while the page is open. */
 const subscribeNever = () => () => {};
@@ -175,8 +196,10 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
       }
 
       const previous = smoothed.current;
-      const value =
-        previous === null ? found.cents : previous + (found.cents - previous) * SMOOTHING;
+      const change = previous === null ? 0 : found.cents - previous;
+      const alpha =
+        Math.abs(change) > MOVING_CENTS ? SMOOTHING_MOVING : SMOOTHING_SETTLED;
+      const value = previous === null ? found.cents : previous + change * alpha;
       smoothed.current = value;
       setTarget({ ...found, cents: value });
 
@@ -209,12 +232,31 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
     }, HOLD_MS);
   }, [resetTracking]);
 
+  /**
+   * What to ask the worklet to listen for.
+   *
+   * In manual mode the player has told us the string, so the range narrows to
+   * it and the window gets much shorter — the high E drops from 92ms to 23ms,
+   * which is most of the needle's latency. Follow mode has to keep the full
+   * range, because a range that tight cannot see the other five strings.
+   */
+  const rangeFor = useCallback(
+    (which: Mode, index: number) => {
+      const narrow = which === "manual" ? stringRange(tuning.strings, index, reference) : null;
+      return narrow ?? searchRange(tuning.strings, reference);
+    },
+    [reference, tuning],
+  );
+
   const startListening = useCallback(async () => {
     setStarting(true);
     setProblem(null);
     try {
-      const { minHz, maxHz } = searchRange(tuning.strings, reference);
-      listener.current = await listen({ minHz, maxHz }, onReading);
+      const { minHz, maxHz } = rangeFor(mode, selected);
+      listener.current = await listen(
+        { minHz, maxHz, hopSeconds: HOP_SECONDS },
+        onReading,
+      );
       setListening(true);
     } catch (error) {
       setProblem(
@@ -223,17 +265,19 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
     } finally {
       setStarting(false);
     }
-  }, [onReading, reference, tuning]);
+  }, [mode, onReading, rangeFor, selected]);
 
-  // Re-narrow the search when the tuning or reference changes mid-session.
+  // Re-narrow the search whenever the tuning, the pitch, the mode or the
+  // chosen string changes. In manual mode that last one is the important
+  // case: each peg tap shortens the window to fit that string.
   useEffect(() => {
     if (!listener.current) return;
-    const { minHz, maxHz } = searchRange(tuning.strings, reference);
+    const { minHz, maxHz } = rangeFor(mode, selected);
     listener.current.update({ minHz, maxHz });
     history.current = [];
     following.current = null;
     smoothed.current = null;
-  }, [reference, tuning]);
+  }, [mode, rangeFor, selected]);
 
   const hear = useCallback(
     (index: number) => {
