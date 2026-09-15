@@ -11,8 +11,13 @@ import { pluck } from "@/core/audio/karplus-strong.ts";
 
 import { closeContext, currentContext, unlock } from "./context";
 
-/** How long a rendered pluck lasts. Long enough to tune a string against. */
-const NOTE_SECONDS = 4;
+/**
+ * How long a rendered pluck lasts. Long enough to tune a string against.
+ *
+ * Exported because the microphone path needs to know how long the speaker
+ * will be busy, and two copies of this number in two files would drift.
+ */
+export const NOTE_SECONDS = 4;
 
 /** Fade applied when a note is cut off early, so stopping never clicks. */
 const RELEASE_SECONDS = 0.08;

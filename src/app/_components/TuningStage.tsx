@@ -35,7 +35,9 @@ import { Headstock } from "./Headstock";
 import { Readout } from "./Readout";
 import type { Mode } from "./ModeToggle";
 import { isSupported } from "../_audio/context";
-import { play, stop } from "../_audio/pluck-voice";
+import { NOTE_SECONDS, play, stop } from "../_audio/pluck-voice";
+import { toneGate } from "@/core/audio/tone-gate.ts";
+
 import { MicError, listen } from "../_audio/microphone";
 import type { Listener, MicReading } from "../_audio/microphone";
 
@@ -60,9 +62,6 @@ const TUNED_HOLD_MS = 700;
 /** And how far it has to drift before it stops counting. Hysteresis: a string
  *  that flickers between tuned and not is worse than no indicator at all. */
 const UNTUNED_CENTS = 10;
-
-/** How long the reference tone rings. Must match pluck-voice. */
-const TONE_MS = 4000;
 
 /**
  * Smoothing on the needle, as an EMA coefficient.
@@ -130,13 +129,16 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
   const smoothed = useRef<number | null>(null);
   const inTuneSince = useRef<number | null>(null);
   /**
-   * Readings are ignored until this time.
+   * State of the reference tone, while it is sounding.
    *
-   * The reference tone comes out of the same speaker the microphone is
-   * pointed at, so without this the tuner hears its own note and reports it
-   * as perfectly in tune. Nobody is helped by a tuner that agrees with itself.
+   * The tone comes out of the same speaker the microphone is pointed at, so
+   * its readings have to be ignored — otherwise the tuner hears its own note
+   * and calls it perfectly in tune. Rather than ignore a fixed four seconds,
+   * the level is watched: once the player is clearly audible over the
+   * speaker, the tone is stopped and readings are trusted again. See
+   * `core/audio/tone-gate.ts`.
    */
-  const mutedUntil = useRef(0);
+  const tone = useRef<{ startedAt: number; baselineRms: number } | null>(null);
   /** Mirror of `tuned`, readable from the reading handler without stale
    *  closures, so arriving at pitch can be detected as a transition. */
   const tunedRef = useRef<number[]>([]);
@@ -159,6 +161,7 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
   const stopListening = useCallback(() => {
     listener.current?.stop();
     listener.current = null;
+    tone.current = null;
     resetTracking();
     if (clearTimer.current !== null) window.clearTimeout(clearTimer.current);
     clearTimer.current = null;
@@ -169,7 +172,25 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
   useEffect(() => stopListening, [stopListening]);
 
   const onReading = useCallback((reading: MicReading) => {
-    if (performance.now() < mutedUntil.current) return;
+    const ringing = tone.current;
+    if (ringing) {
+      const elapsedMs = performance.now() - ringing.startedAt;
+      const verdict = toneGate(reading.rms, {
+        baselineRms: ringing.baselineRms,
+        elapsedMs,
+      });
+      if (verdict === "baseline") {
+        // Learn the loudest the speaker alone gets, so the comparison later
+        // is against the tone rather than against silence.
+        ringing.baselineRms = Math.max(ringing.baselineRms, reading.rms);
+        return;
+      }
+      if (verdict === "tone-only") return;
+      // The player has joined in. The tone has done its job.
+      tone.current = null;
+      stop();
+    }
+
     if (reading.clarity < MIN_CLARITY || reading.hz <= 0) return;
 
     // Median of the last few frames, not the newest. A single frame can land
@@ -251,6 +272,10 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
   const startListening = useCallback(async () => {
     setStarting(true);
     setProblem(null);
+    // A note left ringing from before would be the first thing the microphone
+    // heard, and it would read as perfectly in tune.
+    stop();
+    tone.current = null;
     try {
       const { minHz, maxHz } = rangeFor(mode, selected);
       listener.current = await listen(
@@ -281,23 +306,33 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
 
   const hear = useCallback(
     (index: number) => {
-      mutedUntil.current = performance.now() + TONE_MS;
       setPluck((previous) => ({ index, nonce: (previous?.nonce ?? 0) + 1 }));
       void play(noteToFrequency(tuning.strings[index], reference));
+
+      // Only worth tracking while the microphone is on; with it off there is
+      // nothing to protect from the speaker.
+      tone.current = listening
+        ? { startedAt: performance.now(), baselineRms: 0 }
+        : null;
+      if (listening) {
+        // Whatever happens, stop watching once the note could not still be
+        // sounding — a player who never joins in should not leave the gate
+        // armed forever.
+        window.setTimeout(() => {
+          tone.current = null;
+        }, NOTE_SECONDS * 1000);
+      }
     },
-    [reference, tuning],
+    [listening, reference, tuning],
   );
 
   const selectPeg = useCallback(
     (index: number) => {
-      // Tapping the string that is already selected silences the reference
-      // tone. Without this there is no way to stop it early, and while it
-      // rings the microphone is deaf — so the tuner would appear frozen for
-      // four seconds after every tap.
-      const ringing = performance.now() < mutedUntil.current;
-      if (index === selected && ringing) {
+      // Tapping the string that is already selected silences the tone, for a
+      // player who wants quiet rather than to play along.
+      if (index === selected && tone.current) {
         stop();
-        mutedUntil.current = 0;
+        tone.current = null;
         return;
       }
       smoothed.current = null;
