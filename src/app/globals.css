@@ -48,15 +48,18 @@
   --color-tuning-edge: #5a3e0c;
 
   /*
-   * "Part of this chord", in the scale row. Teal rather than the tuner's
-   * green: that green is a warm one, and on a cool page it goes muddy. Teal
-   * keeps the sense of "included" while belonging to the same family as the
-   * rest of the palette — and it is still nothing like the blue that means
-   * "you chose this".
+   * "Part of this chord", in the scale row.
+   *
+   * The complement of the interface blue, which is what makes it read as a
+   * deliberate pair rather than a fourth colour someone reached for. True
+   * complement is a plain orange, and gold is its neighbour — both were too
+   * close to the amber finger-1 dot on the same page to be told apart.
+   * Coral sits between that amber and the red of a muted string without
+   * being mistaken for either.
    */
-  --color-included: #2dd4bf;
-  --color-included-bg: #0c2b2a;
-  --color-included-edge: #1a5852;
+  --color-included: #ff8a5c;
+  --color-included-bg: #2f1a12;
+  --color-included-edge: #6d3420;
 
   --color-tuned: #3fbf7f;
   --color-tuned-bg: #10291d;

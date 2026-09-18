@@ -19,10 +19,13 @@
  * a triad is the 1st, 3rd and 5th degrees of its scale. It is the same fact
  * the note states in words, shown across the key.
  *
- * Teal, not amber and not green. Amber means "the string being tuned" and
- * blue means "you chose this", so neither can say "part of this chord"
- * without being read as a third selection. The tuner's green could, but it
- * is a warm green and goes muddy on a cool page.
+ * Coral: the complement of the interface blue, so the two read as a pair.
+ * Blue means "you chose this" and this means "it follows from what you
+ * chose", which is the relationship complementary colours are for.
+ *
+ * Plain orange and gold are nearer the true complement and were both tried
+ * first — they are indistinguishable from the amber finger-1 dot a few
+ * centimetres below. Coral clears that and the red of a muted string.
  */
 
 import { diatonicChords } from "@/core/music/scales.ts";
