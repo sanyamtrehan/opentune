@@ -33,6 +33,18 @@
 
   --color-warn: #e0714a;
 
+  /*
+   * Fingers, in chord diagrams. Warm, cool, violet, pink — chosen so they
+   * stay distinguishable to the most common forms of colour blindness, which
+   * rules out the obvious red/green pairing. Colour alone is never the only
+   * cue: the legend names each finger and the dots carry it in their
+   * accessible labels.
+   */
+  --color-finger-1: #f5a623;
+  --color-finger-2: #4ea8de;
+  --color-finger-3: #c77dff;
+  --color-finger-4: #ff7ab6;
+
   /* Headstock woods and hardware, used inside the SVG gradients. */
   --color-wood-light: #5a4130;
   --color-wood-mid: #3a2a1c;
