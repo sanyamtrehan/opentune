@@ -47,6 +47,17 @@
   --color-tuning-bg: #2a1c06;
   --color-tuning-edge: #5a3e0c;
 
+  /*
+   * "Part of this chord", in the scale row. Teal rather than the tuner's
+   * green: that green is a warm one, and on a cool page it goes muddy. Teal
+   * keeps the sense of "included" while belonging to the same family as the
+   * rest of the palette — and it is still nothing like the blue that means
+   * "you chose this".
+   */
+  --color-included: #2dd4bf;
+  --color-included-bg: #0c2b2a;
+  --color-included-edge: #1a5852;
+
   --color-tuned: #3fbf7f;
   --color-tuned-bg: #10291d;
   --color-tuned-edge: #1f5c3c;

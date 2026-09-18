@@ -19,10 +19,10 @@
  * a triad is the 1st, 3rd and 5th degrees of its scale. It is the same fact
  * the note states in words, shown across the key.
  *
- * Green, not amber. Amber already means "selected" on the root tabs and the
- * quality toggle, and a third amber thing on the same screen reads as a
- * third selection rather than as a different kind of fact. Green is unused
- * on this page and says "included", which is what this is.
+ * Teal, not amber and not green. Amber means "the string being tuned" and
+ * blue means "you chose this", so neither can say "part of this chord"
+ * without being read as a third selection. The tuner's green could, but it
+ * is a warm green and goes muddy on a cool page.
  */
 
 import { diatonicChords } from "@/core/music/scales.ts";
@@ -67,20 +67,20 @@ export function ScaleRow({ tonic, quality, spelling, chord }: ScaleRowProps) {
             }
             className={`flex flex-1 flex-col items-center gap-0.5 rounded-[10px] border px-2 py-1.5 min-[900px]:gap-1 min-[900px]:px-4 min-[900px]:py-2.5 ${
               isChordTone
-                ? "border-tuned-edge bg-tuned-bg"
+                ? "border-included-edge bg-included-bg"
                 : "border-edge bg-panel"
             }`}
           >
             <span
               className={`font-mono text-[11px] min-[900px]:text-[13px] ${
-                isChordTone ? "text-tuned" : "text-ink-faint"
+                isChordTone ? "text-included" : "text-ink-faint"
               }`}
             >
               {entry.numeral}
             </span>
             <span
               className={`text-[13px] font-medium min-[900px]:text-[16px] ${
-                isChordTone ? "text-tuned" : "text-ink-muted"
+                isChordTone ? "text-included" : "text-ink-muted"
               }`}
             >
               {/* The symbol follows the spelling choice too, so the row does
