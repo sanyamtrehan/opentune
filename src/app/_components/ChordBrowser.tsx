@@ -139,7 +139,7 @@ export function ChordBrowser() {
         * room beside it, so the pane sits underneath — still always
         * rendered, for the same reason.
         */}
-      <main className="mx-auto grid min-h-0 w-full max-w-[1120px] flex-1 grid-cols-1 items-stretch gap-x-10 gap-y-6 overflow-y-auto px-[clamp(16px,4vw,28px)] pb-[max(14px,env(safe-area-inset-bottom))] min-[900px]:grid-cols-[minmax(0,1fr)_minmax(320px,380px)]">
+      <main className="mx-auto grid min-h-0 w-full max-w-[1120px] flex-1 grid-cols-1 items-start gap-x-10 gap-y-6 overflow-y-auto px-[clamp(16px,4vw,28px)] pb-[max(14px,env(safe-area-inset-bottom))] min-[900px]:grid-cols-[minmax(0,1fr)_minmax(320px,380px)]">
         <section className="flex flex-col items-center justify-center gap-5">
           <h1 className="flex-none text-[28px] leading-none font-bold tracking-tight min-[900px]:text-[40px]">
             {chord.symbol}

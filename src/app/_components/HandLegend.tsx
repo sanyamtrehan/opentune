@@ -3,103 +3,57 @@
 /**
  * Which finger is which colour, shown on a hand.
  *
- * Drawn here rather than taken from an icon set: stock hands are a single
- * silhouette path, and this needs each finger addressable so it can be
- * tinted and dimmed independently.
+ * The artwork is the supplied illustration, recoloured. Its fingers are not
+ * separate paths, so they cannot be tinted directly — instead each finger's
+ * colour is a plain shape clipped to the hand's own body. The clip does the
+ * work: the tint stops exactly where the finger does, following the real
+ * outline rather than a capsule pretending to be one.
  *
- * It is the back of the fretting hand — a left hand seen from behind, which
- * is the view you have of your own hand over the neck, so the thumb is on
- * the left and the fingers run index to little across. Fingers the shape
- * does not use are drawn flat, so the hand also answers "which fingers do I
- * need" at a glance.
+ * It is a left hand with the palm towards you, which is the fretting hand
+ * seen from the front. So the fingers run little, ring, middle, index from
+ * left to right, and the thumb is on the right.
  */
 
 import { FINGER_COLOURS, FINGER_NAMES } from "./ChordDiagram";
+import { HAND_BODY, HAND_SHADOW } from "./hand-paths";
 import type { Finger } from "@/core/chords/shapes.ts";
 
-/**
- * A finger as a tapered capsule: wider at the knuckle, rounded at the tip,
- * and fanning slightly outwards the way a relaxed hand does.
- */
-function fingerPath(
-  baseX: number,
-  tipX: number,
-  tipY: number,
-  baseWidth: number,
-  tipWidth: number,
-  options: { baseY?: number; roundBase?: boolean } = {},
-): string {
-  const baseY = options.baseY ?? 136;
-  return [
-    `M ${baseX - baseWidth} ${baseY}`,
-    `L ${tipX - tipWidth} ${tipY + tipWidth}`,
-    `A ${tipWidth} ${tipWidth} 0 0 1 ${tipX + tipWidth} ${tipY + tipWidth}`,
-    `L ${baseX + baseWidth} ${baseY}`,
-    // The silhouette wants a flat base so it unions cleanly with the palm.
-    // The coloured overlay wants a round one, or the colour ends in a hard
-    // line across the hand and the fingers look inserted rather than joined.
-    options.roundBase
-      ? `A ${baseWidth} ${baseWidth} 0 0 1 ${baseX - baseWidth} ${baseY}`
-      : "",
-    "Z",
-  ].join(" ");
-}
+/** The artwork's own coordinate space. */
+const VIEW_WIDTH = 178.012;
+const VIEW_HEIGHT = 281.509;
 
-/*
- * Proportions matter more than detail at this size. A hand's fingers are
- * roughly as long as its palm; drawn much shorter they read as stubs on a
- * block, which is what the first attempt looked like.
+/** Where the knuckles are: colour runs from the fingertip down to here. */
+const KNUCKLE_Y = 116;
+
+/**
+ * Each finger's column in the artwork, measured off the rendered drawing.
+ * Generous enough to cover the finger's full width — the clip trims the rest.
  */
-interface FingerShape {
+const FINGERS: ReadonlyArray<{
   finger: Exclude<Finger, null>;
-  /** Flat-based, for the silhouette. */
-  path: string;
-  /** Round-based, for the colour laid over it. */
-  colour: string;
+  x: number;
+  width: number;
+  top: number;
   /** Where the number sits, near the tip. */
   label: { x: number; y: number };
-}
-
-const GEOMETRY: ReadonlyArray<
-  [Exclude<Finger, null>, number, number, number, number, number, { x: number; y: number }]
-> = [
-  [1, 62, 54, 44, 13.5, 11.5, { x: 54, y: 62 }],
-  [2, 89, 87, 26, 14, 12, { x: 87, y: 45 }],
-  [3, 116, 119, 36, 13.5, 11.5, { x: 119, y: 55 }],
-  [4, 141, 150, 68, 12, 10, { x: 150, y: 86 }],
+}> = [
+  { finger: 4, x: 2, width: 34, top: 42, label: { x: 20, y: 84 } },
+  { finger: 3, x: 33, width: 34, top: 14, label: { x: 51, y: 58 } },
+  { finger: 2, x: 69, width: 36, top: -2, label: { x: 88, y: 44 } },
+  { finger: 1, x: 105, width: 34, top: 16, label: { x: 122, y: 60 } },
 ];
 
-const FINGERS: readonly FingerShape[] = GEOMETRY.map(
-  ([finger, baseX, tipX, tipY, baseWidth, tipWidth, label]) => ({
-    finger,
-    path: fingerPath(baseX, tipX, tipY, baseWidth, tipWidth),
-    colour: fingerPath(baseX, tipX, tipY, baseWidth, tipWidth, {
-      baseY: 130,
-      roundBase: true,
-    }),
-    label,
-  }),
-);
-
-/** Thumb: thicker, angled away from the palm, and never coloured — it sits
- *  behind the neck and stops nothing in an open chord. */
-const THUMB = "M 58 154 L 20 132 A 15 15 0 0 1 36 108 L 66 130 Z";
-
-/** The palm, narrowing towards the wrist the way a hand does. */
-const PALM =
-  "M 50 126 Q 48 118 58 118 L 155 118 Q 165 118 164 130 L 158 176 Q 154 196 132 196 L 82 196 Q 60 196 56 176 Z";
-
 export interface HandLegendProps {
-  /** Fingers this shape uses. Others are drawn flat. */
+  /** Fingers this shape uses. The rest stay neutral. */
   used: ReadonlyArray<Exclude<Finger, null>>;
 }
 
 export function HandLegend({ used }: HandLegendProps) {
   return (
-    <figure className="flex flex-none flex-col items-center gap-1.5">
+    <figure className="flex flex-none flex-col items-center gap-2">
       <svg
-        viewBox="0 0 180 206"
-        className="h-[132px] w-auto min-[900px]:h-[168px]"
+        viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
+        className="h-[150px] w-auto min-[900px]:h-[200px]"
         role="img"
         aria-label={FINGERS.map(
           ({ finger }) =>
@@ -108,52 +62,51 @@ export function HandLegend({ used }: HandLegendProps) {
             }`,
         ).join("; ")}
       >
-        {/*
-          * One silhouette, no strokes. Drawing the palm and each finger as
-          * separate outlined shapes puts a line where they meet, which is
-          * what made earlier attempts look like fingers standing in a
-          * bucket. Concatenating every subpath into a single fill unions
-          * them, and with no stroke there are no internal edges to give the
-          * construction away.
-          */}
-        <path
-          d={[PALM, THUMB, ...FINGERS.map((entry) => entry.path)].join(" ")}
-          fill="var(--color-panel-raised)"
-        />
+        <defs>
+          <clipPath id="ot-hand-body">
+            <path d={HAND_BODY} />
+          </clipPath>
+        </defs>
 
-        {FINGERS.map(({ finger, colour, label }) => {
-          const active = used.includes(finger);
-          if (!active) {
-            return (
-              <text
+        <path d={HAND_SHADOW} fill="var(--color-edge-strong)" />
+        <path d={HAND_BODY} fill="var(--color-panel-raised)" />
+
+        <g clipPath="url(#ot-hand-body)">
+          {FINGERS.filter(({ finger }) => used.includes(finger)).map(
+            ({ finger, x, width, top }) => (
+              // Curved along the bottom rather than square: the knuckles are
+              // not a straight line across the hand, and a flat edge there
+              // reads as the colour being cut off rather than ending.
+              <path
                 key={finger}
-                x={label.x}
-                y={label.y}
-                textAnchor="middle"
-                fontFamily="var(--font-mono)"
-                fontSize="13"
-                fontWeight="600"
-                fill="var(--color-ink-faint)"
-              >
-                {finger}
-              </text>
-            );
-          }
+                d={[
+                  `M ${x} ${top}`,
+                  `L ${x + width} ${top}`,
+                  `L ${x + width} ${KNUCKLE_Y - 4}`,
+                  `Q ${x + width / 2} ${KNUCKLE_Y + 9} ${x} ${KNUCKLE_Y - 4}`,
+                  "Z",
+                ].join(" ")}
+                fill={FINGER_COLOURS[finger]}
+              />
+            ),
+          )}
+        </g>
+
+        {FINGERS.map(({ finger, label }) => {
+          const active = used.includes(finger);
           return (
-            <g key={finger}>
-              <path d={colour} fill={FINGER_COLOURS[finger]} />
-              <text
-                x={label.x}
-                y={label.y}
-                textAnchor="middle"
-                fontFamily="var(--font-mono)"
-                fontSize="13"
-                fontWeight="600"
-                fill="var(--color-ground)"
-              >
-                {finger}
-              </text>
-            </g>
+            <text
+              key={finger}
+              x={label.x}
+              y={label.y}
+              textAnchor="middle"
+              fontFamily="var(--font-mono)"
+              fontSize="16"
+              fontWeight="600"
+              fill={active ? "var(--color-ground)" : "var(--color-ink-faint)"}
+            >
+              {finger}
+            </text>
           );
         })}
       </svg>

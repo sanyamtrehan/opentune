@@ -36,7 +36,10 @@ export function InfoPane({ chord, analysis, pro }: InfoPaneProps) {
     <aside
       // A minimum height so the pane does not resize as you move between
       // chords, for the same reason it is always rendered.
-      className="w-full rounded-2xl border border-edge bg-panel/70 p-4 text-[13px] leading-relaxed min-[900px]:sticky min-[900px]:top-2 min-[900px]:min-h-[19rem]"
+      // Sized to its content. Stretching it to the row height left a mostly
+      // empty box the height of the diagram, which read as a rendering fault
+      // rather than as a panel.
+      className="w-full rounded-2xl border border-edge bg-panel/70 p-4 text-[13px] leading-relaxed min-[900px]:sticky min-[900px]:top-2"
     >
       <h2 className="label-caps mb-3">What you are holding</h2>
 
