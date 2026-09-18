@@ -34,6 +34,20 @@
   --color-warn: #e0714a;
 
   /*
+   * The note beside the diagram is paper on a dark desk. Warm rather than
+   * yellow: a Post-it yellow would fight the amber that means "active" on
+   * the tuner, and this is the only light surface in the app, so it is
+   * already loud enough.
+   */
+  --color-paper: #efe4cd;
+  --color-paper-shade: #e3d5b8;
+  --color-paper-fold: #cfbf9e;
+  --color-paper-ink: #2b2318;
+  --color-paper-ink-muted: #6d5f4c;
+  --color-paper-accent: #9a5b06;
+  /* Tailwind needs these as colours to generate text-paper-* utilities. */
+
+  /*
    * Fingers, in chord diagrams. Warm, cool, violet, pink — chosen so they
    * stay distinguishable to the most common forms of colour blindness, which
    * rules out the obvious red/green pairing. Colour alone is never the only
@@ -73,6 +87,66 @@ body {
   background: radial-gradient(130% 70% at 50% 8%, #16130f 0%, #0a0a0a 65%);
   background-attachment: fixed;
   color: var(--color-ink);
+}
+
+/*
+ * A sheet of paper: torn from the grid, lying slightly askew, lifted off
+ * the page by its shadow, with the bottom corner turned up. The corner is a
+ * clip on the sheet plus a triangle drawn in the gap, which is what makes it
+ * look folded rather than merely cut off.
+ */
+.sticky-note {
+  position: relative;
+  rotate: -0.7deg;
+  background:
+    linear-gradient(158deg, var(--color-paper) 0%, var(--color-paper-shade) 100%);
+  color: var(--color-paper-ink);
+  border-radius: 2px;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 30px), calc(100% - 30px) 100%, 0 100%);
+  box-shadow:
+    0 14px 28px -16px rgba(0, 0, 0, 0.9),
+    0 2px 6px -2px rgba(0, 0, 0, 0.6);
+}
+
+/* The turned-up corner, sitting in the notch the clip left behind. */
+.sticky-note::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(135deg, var(--color-paper-fold) 0%, var(--color-paper-shade) 60%);
+  clip-path: polygon(100% 0, 0 100%, 100% 100%);
+  filter: drop-shadow(-1px -1px 1px rgba(0, 0, 0, 0.25));
+}
+
+/* A strip of tape holding it on. Deliberately not centred — nobody tapes
+   anything down straight. */
+.sticky-tape {
+  position: absolute;
+  top: -11px;
+  left: 18%;
+  width: 86px;
+  height: 22px;
+  rotate: -3.5deg;
+  /* Half on the paper, half off it, so one translucent fill has to work
+     over both. Warm and light enough to read as tape on the dark side
+     without looking like a smear on the pale one. */
+  background: linear-gradient(
+    180deg,
+    rgba(246, 238, 220, 0.42) 0%,
+    rgba(246, 238, 220, 0.26) 100%
+  );
+  border-left: 1px solid rgba(255, 255, 255, 0.14);
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 1px 3px -1px rgba(0, 0, 0, 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sticky-note {
+    rotate: none;
+  }
 }
 
 /* Section labels, used often enough to be worth naming. */

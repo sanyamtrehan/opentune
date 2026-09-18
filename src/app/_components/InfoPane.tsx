@@ -48,27 +48,29 @@ export function InfoPane({ chord, analysis, pro, spelling }: InfoPaneProps) {
 
   return (
     <aside
-      // A minimum height so the pane does not resize as you move between
-      // chords, for the same reason it is always rendered.
-      // Sized to its content. Stretching it to the row height left a mostly
-      // empty box the height of the diagram, which read as a rendering fault
-      // rather than as a panel.
-      className="w-full rounded-2xl border border-edge bg-panel/70 p-4 text-[13px] leading-relaxed min-[900px]:p-6 min-[900px]:text-[15px] min-[900px]:sticky min-[900px]:top-2"
+      // Sized to its content: stretching it to the row height left a mostly
+      // empty sheet the height of the diagram, which read as a rendering
+      // fault rather than as a note.
+      className="sticky-note w-full p-5 text-[13px] leading-relaxed min-[900px]:sticky min-[900px]:top-2 min-[900px]:p-6 min-[900px]:pb-9 min-[900px]:text-[15px]"
     >
-      <h2 className="label-caps mb-3">What you are holding</h2>
+      <span aria-hidden="true" className="sticky-tape" />
+
+      <h2 className="mb-3 text-[10px] tracking-[0.18em] text-paper-ink-muted uppercase">
+        What you are holding
+      </h2>
 
       <dl className="flex flex-col gap-3">
         <div>
-          <dt className="text-ink-muted">The notes</dt>
-          <dd className="mt-0.5 font-mono text-[15px] text-ink">
+          <dt className="text-paper-ink-muted">The notes</dt>
+          <dd className="mt-0.5 font-mono text-[15px] text-paper-ink">
             {analysis === null ? (
               spelled.join(" ")
             ) : (
               analysis.strings.map((string, index) => (
-                <span key={index} className={string.note ? "" : "text-ink-faint"}>
+                <span key={index} className={string.note ? "" : "text-paper-ink-muted/60"}>
                   {string.note ? show(string.note) : "×"}
                   {pro && string.degree && (
-                    <span className="text-accent">({string.degree})</span>
+                    <span className="text-paper-accent">({string.degree})</span>
                   )}
                   {index < analysis.strings.length - 1 ? " " : ""}
                 </span>
@@ -78,7 +80,7 @@ export function InfoPane({ chord, analysis, pro, spelling }: InfoPaneProps) {
         </div>
 
         {!pro && (
-          <p className="text-ink-faint">
+          <p className="text-paper-ink-muted">
             Turn on Pro to see what each note is doing.
           </p>
         )}
@@ -87,8 +89,8 @@ export function InfoPane({ chord, analysis, pro, spelling }: InfoPaneProps) {
           <>
 
         <div>
-          <dt className="text-ink-muted">Why those notes</dt>
-          <dd className="mt-0.5 text-ink">
+          <dt className="text-paper-ink-muted">Why those notes</dt>
+          <dd className="mt-0.5 text-paper-ink">
             {chord.quality === "major" ? (
               <>
                 A major chord is the 1st, 3rd and 5th notes of its scale —{" "}
@@ -108,8 +110,8 @@ export function InfoPane({ chord, analysis, pro, spelling }: InfoPaneProps) {
 
         {analysis && (
         <div>
-          <dt className="text-ink-muted">Why six strings, three notes</dt>
-          <dd className="mt-0.5 text-ink">
+          <dt className="text-paper-ink-muted">Why six strings, three notes</dt>
+          <dd className="mt-0.5 text-paper-ink">
             {doubled.length === 0 ? (
               <>Each note sounds once.</>
             ) : (
@@ -138,8 +140,8 @@ export function InfoPane({ chord, analysis, pro, spelling }: InfoPaneProps) {
 
         {analysis && analysis.missing.length > 0 && (
           <div>
-            <dt className="text-ink-muted">Left out</dt>
-            <dd className="mt-0.5 text-warn">
+            <dt className="text-paper-ink-muted">Left out</dt>
+            <dd className="mt-0.5 text-[#9c3b22]">
               This shape has no{" "}
               {analysis.missing.map((tone) => degreeWord(tone.degree)).join(" or ")}
               {chord.quality === "minor" || chord.quality === "major"
@@ -152,8 +154,8 @@ export function InfoPane({ chord, analysis, pro, spelling }: InfoPaneProps) {
 
         {renamed.length > 0 && (
           <div>
-            <dt className="text-ink-muted">A note on the spelling</dt>
-            <dd className="mt-0.5 text-ink">
+            <dt className="text-paper-ink-muted">A note on the spelling</dt>
+            <dd className="mt-0.5 text-paper-ink">
               {renamed.map((tone, index) => (
                 <span key={tone.degree}>
                   {index > 0 && ", and "}
@@ -169,8 +171,8 @@ export function InfoPane({ chord, analysis, pro, spelling }: InfoPaneProps) {
 
         {analysis?.inverted && (
           <div>
-            <dt className="text-ink-muted">Lowest note</dt>
-            <dd className="mt-0.5 text-ink">
+            <dt className="text-paper-ink-muted">Lowest note</dt>
+            <dd className="mt-0.5 text-paper-ink">
               The deepest string is {show(analysis.bass.note)}, the{" "}
               {degreeWord(analysis.bass.degree ?? "")} rather than the root. That
               is written {chord.symbol}/{show(analysis.bass.note)}.
