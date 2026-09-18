@@ -13,10 +13,18 @@ import { useState } from "react";
 
 import { buildChord, rootFromPitchClass, rootName } from "@/core/music/chords.ts";
 import type { ChordQuality } from "@/core/music/chords.ts";
+import { analyseShape } from "@/core/chords/analysis.ts";
 import { findShape } from "@/core/chords/shapes.ts";
+import { findPreset } from "@/core/tunings/presets.ts";
+import { resolveShape } from "@/core/tunings/resolve.ts";
 
-import { ChordDiagram, FINGER_COLOURS, FINGER_NAMES, fingersUsed } from "./ChordDiagram";
+import { ChordDiagram, fingersUsed } from "./ChordDiagram";
+import { HandLegend } from "./HandLegend";
 import { Header } from "./Header";
+import { ProPanel } from "./ProPanel";
+
+/** Shapes are standard-tuning only in this draft, so the analysis is too. */
+const STANDARD = resolveShape(findPreset("standard")!).strings;
 
 const ROOTS = Array.from({ length: 12 }, (_, pitchClass) => ({
   pitchClass,
@@ -31,9 +39,11 @@ const QUALITIES: ReadonlyArray<{ value: ChordQuality; label: string }> = [
 export function ChordBrowser() {
   const [rootPitchClass, setRootPitchClass] = useState(0);
   const [quality, setQuality] = useState<ChordQuality>("major");
+  const [pro, setPro] = useState(false);
 
   const chord = buildChord(rootFromPitchClass(rootPitchClass), quality);
   const shape = findShape(rootPitchClass, quality);
+  const analysis = shape ? analyseShape(shape, chord, STANDARD) : null;
 
   return (
     <div className="relative flex h-[100dvh] w-full flex-col overflow-hidden">
@@ -88,14 +98,37 @@ export function ChordBrowser() {
             </button>
           ))}
         </div>
-        <div className="flex min-w-0 flex-1 items-center justify-end">
-          <span className="font-mono text-[13px] text-ink-muted">
+        <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
+          <span className="truncate font-mono text-[13px] text-ink-muted">
             {chord.tones.map((tone) => rootName(tone.note)).join(" ")}
           </span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={pro}
+            onClick={() => setPro((on) => !on)}
+            title="Show the notes you are holding and why"
+            className={`flex flex-none cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors ${
+              pro
+                ? "border-accent-edge bg-accent-bg text-accent"
+                : "border-edge bg-panel text-ink-muted hover:text-ink"
+            }`}
+          >
+            <span
+              aria-hidden="true"
+              className={`h-2 w-2 rounded-full transition-colors ${
+                pro ? "bg-accent" : "bg-ink-ghost"
+              }`}
+            />
+            Pro
+          </button>
         </div>
       </div>
 
-      <main className="flex min-h-0 flex-1 flex-col items-center justify-center gap-5 overflow-y-auto px-[clamp(16px,4vw,28px)] pb-[max(14px,env(safe-area-inset-bottom))]">
+      <main
+        data-pro={pro}
+        className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 overflow-y-auto data-[pro=true]:justify-start px-[clamp(16px,4vw,28px)] pb-[max(14px,env(safe-area-inset-bottom))]"
+      >
         <h1 className="flex-none text-[28px] leading-none font-bold tracking-tight">
           {chord.symbol}
         </h1>
@@ -107,23 +140,23 @@ export function ChordBrowser() {
                 a layout mistake. */}
             <div
               className="w-full max-w-[260px] flex-none"
-              style={{ aspectRatio: "220 / 250", maxHeight: "min(46vh, 320px)" }}
+              style={{ aspectRatio: "220 / 250", maxHeight: "min(42vh, 300px)" }}
             >
-              <ChordDiagram shape={shape} />
+              <ChordDiagram
+                shape={shape}
+                labels={
+                  pro && analysis
+                    ? analysis.strings.map((string) =>
+                        string.note ? rootName(string.note) : null,
+                      )
+                    : undefined
+                }
+              />
             </div>
 
-            <ul className="flex flex-none flex-wrap justify-center gap-x-4 gap-y-2">
-              {fingersUsed(shape).map((finger) => (
-                <li key={finger} className="flex items-center gap-2 text-[12px] text-ink-muted">
-                  <span
-                    aria-hidden="true"
-                    className="h-3 w-3 rounded-full"
-                    style={{ backgroundColor: FINGER_COLOURS[finger] }}
-                  />
-                  {FINGER_NAMES[finger]}
-                </li>
-              ))}
-            </ul>
+            <HandLegend used={fingersUsed(shape)} />
+
+            {pro && analysis && <ProPanel chord={chord} analysis={analysis} />}
           </>
         ) : (
           <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
