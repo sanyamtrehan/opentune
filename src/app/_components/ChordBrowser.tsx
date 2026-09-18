@@ -176,14 +176,20 @@ export function ChordBrowser() {
         * rendered, for the same reason.
         */}
       {/*
-        * `content-center` matters as much as the widths here. The grid used
+        * Safe centring, not plain `content-center`. Centred content that
+        * overflows its container spills equally in both directions, and the
+        * part above the top edge cannot be scrolled back to — which cut the
+        * chord name in half on a short window. `safe` falls back to
+        * top-aligned the moment it would not fit.
+        *
+        * The centring itself matters as much as the widths here. The grid used
         * to sit at the top of whatever height was left, which on a tall
         * screen put everything in the upper third with a dead half below.
         * Centring the tracks, and letting the diagram grow with the
         * viewport rather than stopping at a fixed pixel cap, is what
         * actually uses the space.
         */}
-      <main className="mx-auto grid min-h-0 w-full max-w-[1240px] flex-1 grid-cols-1 content-center items-start gap-x-[clamp(1.5rem,4vw,3.5rem)] gap-y-8 overflow-y-auto px-[clamp(16px,4vw,40px)] pb-[max(14px,env(safe-area-inset-bottom))] min-[900px]:grid-cols-[minmax(0,1fr)_380px]">
+      <main className="mx-auto grid min-h-0 w-full max-w-[1240px] flex-1 pt-2 grid-cols-1 [align-content:safe_center] items-start gap-x-[clamp(1.5rem,4vw,3.5rem)] gap-y-8 overflow-y-auto px-[clamp(16px,4vw,40px)] pb-[max(14px,env(safe-area-inset-bottom))] min-[900px]:grid-cols-[minmax(0,1fr)_380px]">
         <section className="flex flex-col items-center justify-center gap-5">
           <h1 className="flex-none text-[28px] leading-none font-bold tracking-tight min-[900px]:text-[52px]">
             {chord.symbol}

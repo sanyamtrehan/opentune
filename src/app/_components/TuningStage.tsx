@@ -398,7 +398,7 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
                 tuned.includes(index)
                   ? "bg-tuned"
                   : index === selected
-                    ? "bg-accent"
+                    ? "bg-tuning"
                     : "bg-[#2c2c2c]"
               }`}
             />
@@ -412,9 +412,12 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
             type="button"
             onClick={listening ? stopListening : startListening}
             disabled={starting || !supported}
+            // Blue, not amber: this is an action. Amber now means one thing
+            // only — the string being tuned — and a big amber button next to
+            // an amber peg dilutes that back into decoration.
             className={`flex-1 cursor-pointer rounded-[13px] py-[15px] text-[15px] font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
               listening
-                ? "bg-panel-raised text-accent shadow-[inset_0_0_0_1px_#3a2a0a]"
+                ? "bg-panel-raised text-accent shadow-[inset_0_0_0_1px_var(--color-accent-edge)]"
                 : "bg-accent text-ground"
             }`}
           >
@@ -424,7 +427,7 @@ export function TuningStage({ tuning, reference, mode }: TuningStageProps) {
             type="button"
             onClick={() => hear(selected)}
             disabled={!supported}
-            className="flex-none basis-[40%] cursor-pointer rounded-[13px] border border-[#262626] bg-panel py-[15px] text-[14px] text-[#d8d8d8] hover:border-accent-edge disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex-none basis-[40%] cursor-pointer rounded-[13px] border border-[#262626] bg-panel py-[15px] text-[14px] text-[#d8d8d8] hover:border-tuning-edge disabled:cursor-not-allowed disabled:opacity-60"
           >
             Hear {note ? formatNote(note) : "—"}
           </button>

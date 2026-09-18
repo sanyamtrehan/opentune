@@ -33,7 +33,7 @@ export function Readout({ note, cents, stringNumber, idleHint }: ReadoutProps) {
     ? "text-warn"
     : inTune
       ? "text-tuned"
-      : "text-accent";
+      : "text-tuning";
 
   return (
     <section

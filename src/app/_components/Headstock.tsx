@@ -53,7 +53,7 @@ function stateOf(index: number, selected: number | null, tuned: readonly number[
 
 const STROKE: Record<StringState, string> = {
   idle: "#b9b4ac",
-  active: "var(--color-accent)",
+  active: "var(--color-tuning)",
   tuned: "var(--color-tuned)",
 };
 
@@ -270,14 +270,14 @@ export function Headstock({
             y1={PIVOT.y}
             x2={PIVOT.x}
             y2="40"
-            stroke="var(--color-accent)"
+            stroke="var(--color-tuning)"
             strokeWidth="3"
             strokeLinecap="round"
           />
-          <circle cx={PIVOT.x} cy="42" r="4" fill="var(--color-accent)" />
+          <circle cx={PIVOT.x} cy="42" r="4" fill="var(--color-tuning)" />
         </g>
         <circle cx={PIVOT.x} cy={PIVOT.y} r="11" fill="#120e09" stroke="#4a3a24" strokeWidth="2" />
-        <circle cx={PIVOT.x} cy={PIVOT.y} r="3.5" fill="var(--color-accent)" />
+        <circle cx={PIVOT.x} cy={PIVOT.y} r="3.5" fill="var(--color-tuning)" />
       </svg>
 
       {strings.map((note, index) => {
@@ -288,13 +288,13 @@ export function Headstock({
           state === "tuned"
             ? "var(--color-tuned)"
             : state === "active"
-              ? "var(--color-accent)"
+              ? "var(--color-tuning)"
               : "#2b2b2b";
         const text =
           state === "tuned"
             ? "var(--color-tuned)"
             : state === "active"
-              ? "var(--color-accent)"
+              ? "var(--color-tuning)"
               : "#c9c9c9";
         return (
           <button
@@ -305,7 +305,7 @@ export function Headstock({
             aria-label={`String ${6 - index}, ${label}${
               state === "tuned" ? ", in tune" : ""
             }`}
-            className={`absolute flex aspect-square w-[19.5%] min-w-[54px] -translate-x-1/2 -translate-y-1/2 cursor-pointer flex-col items-center justify-center gap-[2px] rounded-full border-solid p-0 transition-[background-color,border-color,box-shadow] duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright ${
+            className={`absolute flex aspect-square w-[19.5%] min-w-[54px] -translate-x-1/2 -translate-y-1/2 cursor-pointer flex-col items-center justify-center gap-[2px] rounded-full border-solid p-0 transition-[background-color,border-color,box-shadow] duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tuning-bright ${
               state === "tuned" ? "tuned-pop" : ""
             }`}
             style={{
@@ -317,7 +317,7 @@ export function Headstock({
                 state === "tuned"
                   ? "var(--color-tuned-bg)"
                   : state === "active"
-                    ? "var(--color-accent-bg)"
+                    ? "var(--color-tuning-bg)"
                     : "#181818",
               boxShadow: state === "idle" ? "none" : `0 0 22px -6px ${ring}`,
               color: text,

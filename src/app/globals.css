@@ -10,68 +10,75 @@
  * string we are hearing. Nothing else on the screen may use them.
  */
 @theme {
-  --color-ground: #0a0a0a;
-  --color-panel: #141414;
-  --color-panel-raised: #181818;
-  --color-panel-input: #171717;
-  --color-edge: #232323;
-  --color-edge-strong: #2b2b2b;
+  /*
+   * Cool ground, warm objects.
+   *
+   * The two elements that already looked good — the fretboard and the paper
+   * note — work because they are warm materials with depth. Making the page
+   * around them cool sharpens that contrast instead of competing with it:
+   * a blue-black desk with wood, brass and paper lying on it.
+   */
+  --color-ground: #080d16;
+  --color-ground-lift: #0e1624;
+  --color-panel: #131d2e;
+  --color-panel-raised: #18233a;
+  --color-panel-input: #111b2b;
+  --color-edge: #223047;
+  --color-edge-strong: #2d3e5b;
 
-  --color-ink: #f2f2f2;
-  --color-ink-muted: #8a8a8a;
-  --color-ink-faint: #6e6e6e;
-  --color-ink-ghost: #565656;
+  --color-ink: #eef3fb;
+  --color-ink-muted: #93a4c0;
+  --color-ink-faint: #64748f;
+  --color-ink-ghost: #46536c;
 
-  --color-accent: #f5a623;
-  --color-accent-bright: #ffc05c;
-  --color-accent-bg: #2a1c06;
-  --color-accent-edge: #5a3e0c;
+  /* The interface accent: anything you can choose or press. */
+  --color-accent: #4da3ff;
+  --color-accent-bright: #86c4ff;
+  --color-accent-bg: #0e2740;
+  --color-accent-edge: #1d4b78;
+
+  /*
+   * Amber keeps exactly one meaning now: the string being tuned. It used to
+   * be the interface accent as well, which is why a screen could have three
+   * amber things on it meaning three different things.
+   */
+  --color-tuning: #f5a623;
+  --color-tuning-bright: #ffc05c;
+  --color-tuning-bg: #2a1c06;
+  --color-tuning-edge: #5a3e0c;
 
   --color-tuned: #3fbf7f;
-  --color-tuned-bg: #11291d;
+  --color-tuned-bg: #10291d;
   --color-tuned-edge: #1f5c3c;
 
   --color-warn: #e0714a;
 
-  /*
-   * The note beside the diagram is paper on a dark desk. Warm rather than
-   * yellow: a Post-it yellow would fight the amber that means "active" on
-   * the tuner, and this is the only light surface in the app, so it is
-   * already loud enough.
-   */
+  /* Fingers, in chord diagrams. Warm, cool, violet, pink — chosen so they
+     stay distinguishable to the most common forms of colour blindness. */
+  --color-finger-1: #f5a623;
+  --color-finger-2: #4ea8de;
+  --color-finger-3: #c77dff;
+  --color-finger-4: #ff7ab6;
+
+  /* Objects. Deliberately untouched by the blue: these are the warm things
+     the cool ground exists to set off. */
+  --color-wood-light: #5a4130;
+  --color-wood-mid: #3a2a1c;
+  --color-wood-dark: #211710;
+  --color-wood-edge: #6a4e38;
+  --color-board: #241a12;
+  --color-board-face: #2f2b28;
+  --color-fret: #4a443f;
+  --color-nut: #efe9de;
+  --color-string: #d6d2ca;
+  --color-muted-string: #e0473c;
+
   --color-paper: #efe4cd;
   --color-paper-shade: #e3d5b8;
   --color-paper-fold: #cfbf9e;
   --color-paper-ink: #2b2318;
   --color-paper-ink-muted: #6d5f4c;
   --color-paper-accent: #9a5b06;
-  /* Tailwind needs these as colours to generate text-paper-* utilities. */
-
-  /*
-   * Fingers, in chord diagrams. Warm, cool, violet, pink — chosen so they
-   * stay distinguishable to the most common forms of colour blindness, which
-   * rules out the obvious red/green pairing. Colour alone is never the only
-   * cue: the legend names each finger and the dots carry it in their
-   * accessible labels.
-   */
-  --color-finger-1: #f5a623;
-  --color-finger-2: #4ea8de;
-  --color-finger-3: #c77dff;
-  --color-finger-4: #ff7ab6;
-
-  /* Headstock woods and hardware, used inside the SVG gradients. */
-  --color-wood-light: #5a4130;
-  --color-wood-mid: #3a2a1c;
-  --color-wood-dark: #211710;
-  --color-wood-edge: #6a4e38;
-  --color-board: #241a12;
-  --color-nut: #efe9de;
-  --color-string: #d6d2ca;
-  /* Chord diagrams: a board surface, its frets, and the red that marks a
-     string you are not meant to play. */
-  --color-board-face: #2f2b28;
-  --color-fret: #4a443f;
-  --color-muted-string: #e0473c;
 
   --font-sans: var(--font-space-grotesk), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
@@ -81,12 +88,44 @@ html {
   color-scheme: dark;
 }
 
+/*
+ * The backdrop.
+ *
+ * Three layers, because one gradient on near-black is indistinguishable
+ * from flat: a cool wash from the top, a warm bloom low and centre where
+ * the instrument sits, and a vignette pulling the corners down so the
+ * middle of the screen is where the light is. Fixed, so scrolling the
+ * content does not drag the light with it.
+ */
 body {
-  /* Not a flat ground: a warm bloom behind the headstock, fading to black at
-     the edges, which is what stops the screen reading as a form. */
-  background: radial-gradient(130% 70% at 50% 8%, #16130f 0%, #0a0a0a 65%);
+  background:
+    radial-gradient(120% 80% at 50% 110%, rgba(245, 166, 35, 0.07) 0%, transparent 60%),
+    radial-gradient(100% 70% at 50% -10%, rgba(77, 163, 255, 0.13) 0%, transparent 65%),
+    radial-gradient(140% 120% at 50% 40%, var(--color-ground-lift) 0%, var(--color-ground) 70%);
   background-attachment: fixed;
   color: var(--color-ink);
+  position: relative;
+}
+
+/*
+ * A film of grain over everything. Digital gradients band on dark screens;
+ * a little noise hides that, and it is most of the difference between a
+ * backdrop that feels like a surface and one that feels like an empty div.
+ */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.4;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+}
+
+/* Content sits above the grain. */
+body > * {
+  position: relative;
+  z-index: 1;
 }
 
 /*
