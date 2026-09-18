@@ -20,6 +20,7 @@ import { resolveShape } from "@/core/tunings/resolve.ts";
 
 import { ChordDiagram, fingersUsed } from "./ChordDiagram";
 import { HandLegend } from "./HandLegend";
+import { PositionSlider } from "./PositionSlider";
 import { Header } from "./Header";
 import { InfoPane } from "./InfoPane";
 import { ScaleRow } from "./ScaleRow";
@@ -203,8 +204,14 @@ export function ChordBrowser() {
 
           {shape && (
             <div className="flex w-full flex-col items-center gap-3">
+              <PositionSlider
+                count={positions.length}
+                index={position}
+                onChange={setChosenPosition}
+                label={shape.name}
+              >
               <div
-                className="w-full max-w-[260px] flex-none min-[900px]:max-w-[460px]"
+                className="mx-auto w-full max-w-[260px] flex-none min-[900px]:max-w-[460px]"
                 style={{ aspectRatio: "248 / 250", maxHeight: "min(56vh, 500px)" }}
               >
                 <ChordDiagram
@@ -220,34 +227,18 @@ export function ChordBrowser() {
                   }
                 />
               </div>
+              </PositionSlider>
 
               <div className="flex w-full max-w-[260px] items-end justify-between min-[900px]:max-w-[460px]">
                 {/* Which of the positions is showing, and how to move between
                     them. Dots rather than a list: they say "there are more
                     of these" without naming any of them. */}
-                <div className="flex flex-col gap-2">
-                  <span className="text-[12px] text-ink-muted min-[900px]:text-[14px]">
-                    {shape.name}
-                  </span>
+                <span className="text-[12px] text-ink-muted min-[900px]:text-[14px]">
+                  {shape.name}
                   {positions.length > 1 && (
-                    <div className="flex items-center gap-2">
-                      {positions.map((candidate, index) => (
-                        <button
-                          key={candidate.id}
-                          type="button"
-                          aria-label={`Position ${index + 1}: ${candidate.name}`}
-                          aria-pressed={index === position}
-                          onClick={() => setChosenPosition(index)}
-                          className={`h-2.5 cursor-pointer rounded-full transition-all ${
-                            index === position
-                              ? "w-6 bg-accent"
-                              : "w-2.5 bg-edge-strong hover:bg-ink-faint"
-                          }`}
-                        />
-                      ))}
-                    </div>
+                    <span className="ml-2 text-ink-faint">drag to move</span>
                   )}
-                </div>
+                </span>
 
                 {/* Tucked into the corner rather than standing beside the
                     diagram: it is a key, not a second subject. */}

@@ -244,6 +244,43 @@ export function ChordDiagram({ shape, noteNames }: ChordDiagramProps) {
         />
       )}
 
+      {/*
+        * The notes the barre itself is holding.
+        *
+        * Those strings have no dot of their own to write in — the bar
+        * replaced them — so without this the three or four notes under the
+        * barre simply went unnamed, which is most of the chord on a barre
+        * shape.
+        */}
+      {shape.barre &&
+        noteNames &&
+        shape.frets.map((fret, index) => {
+          if (
+            fret === "muted" ||
+            fret !== shape.barre!.fret ||
+            index < shape.barre!.from ||
+            index > shape.barre!.to
+          ) {
+            return null;
+          }
+          const name = noteNames[index];
+          if (!name) return null;
+          return (
+            <text
+              key={`barre-${index}`}
+              x={STRING_X[index]}
+              y={rowFor(shape.barre!.fret) + 5}
+              textAnchor="middle"
+              fontFamily="var(--font-mono)"
+              fontSize={name.length > 1 ? 13 : 15}
+              fontWeight="600"
+              fill="var(--color-ground)"
+            >
+              {name}
+            </text>
+          );
+        })}
+
       {shape.frets.map((fret, index) => {
         if (fret === "muted" || fret === 0) return null;
         const finger = shape.fingers[index]!;
