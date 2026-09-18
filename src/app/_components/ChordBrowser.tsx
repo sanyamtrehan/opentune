@@ -12,6 +12,7 @@
 import { useState } from "react";
 
 import { buildChord, rootFromPitchClass, rootName } from "@/core/music/chords.ts";
+import type { RootSpelling } from "@/core/music/chords.ts";
 import { analyseShape } from "@/core/chords/analysis.ts";
 import { findShape } from "@/core/chords/shapes.ts";
 import { findPreset } from "@/core/tunings/presets.ts";
@@ -26,10 +27,17 @@ import { ScaleRow } from "./ScaleRow";
 /** Shapes are standard-tuning only in this draft, so the analysis is too. */
 const STANDARD = resolveShape(findPreset("standard")!).strings;
 
-const ROOTS = Array.from({ length: 12 }, (_, pitchClass) => ({
-  pitchClass,
-  name: rootName(rootFromPitchClass(pitchClass)),
-}));
+/**
+ * How the roots are named. "Auto" is the mix guitarists actually use — E♭
+ * and C♯ rather than D♯ and D♭ — because each key gets the name that needs
+ * fewest accidentals. The other two answer someone who would rather have one
+ * or the other throughout.
+ */
+const SPELLINGS: ReadonlyArray<{ value: RootSpelling; label: string; hint: string }> = [
+  { value: "conventional", label: "Auto", hint: "The usual mix: E♭ but C♯" },
+  { value: "sharp", label: "♯", hint: "Sharps throughout: E♭ becomes D♯" },
+  { value: "flat", label: "♭", hint: "Flats throughout: C♯ becomes D♭" },
+];
 
 /** The toggle offers keys, so major and minor only — never diminished. */
 const QUALITIES: ReadonlyArray<{ value: "major" | "minor"; label: string }> = [
@@ -40,9 +48,13 @@ const QUALITIES: ReadonlyArray<{ value: "major" | "minor"; label: string }> = [
 export function ChordBrowser() {
   const [rootPitchClass, setRootPitchClass] = useState(0);
   const [quality, setQuality] = useState<"major" | "minor">("major");
+  const [spelling, setSpelling] = useState<RootSpelling>("conventional");
   const [pro, setPro] = useState(false);
 
-  const chord = buildChord(rootFromPitchClass(rootPitchClass), quality);
+  // Only the root's name is chosen; every other note follows from it by
+  // letter-stepping, so the whole chord and the whole key change together.
+  const root = rootFromPitchClass(rootPitchClass, 4, spelling);
+  const chord = buildChord(root, quality);
   const shape = findShape(rootPitchClass, quality);
   const analysis = shape ? analyseShape(shape, chord, STANDARD) : null;
 
@@ -52,34 +64,61 @@ export function ChordBrowser() {
 
       {/* Roots scroll rather than wrap: twelve tabs do not fit a phone, and
           wrapping them onto two rows implies a grouping that is not real. */}
-      <div className="mx-auto w-full max-w-[1240px] flex-none overflow-x-auto px-[clamp(16px,4vw,28px)] pb-2">
+      <div className="mx-auto flex w-full max-w-[1240px] flex-none items-center gap-3 px-[clamp(16px,4vw,28px)] pb-2">
+        <div className="min-w-0 flex-1 overflow-x-auto">
+          <div
+            role="tablist"
+            aria-label="Chord root"
+            className="flex w-max gap-1 rounded-[12px] border border-edge bg-panel p-[3px]"
+          >
+            {Array.from({ length: 12 }, (_, pitchClass) => {
+              const selected = pitchClass === rootPitchClass;
+              const available = findShape(pitchClass, quality) !== undefined;
+              return (
+                <button
+                  key={pitchClass}
+                  role="tab"
+                  type="button"
+                  aria-selected={selected}
+                  onClick={() => setRootPitchClass(pitchClass)}
+                  className={`min-w-[42px] cursor-pointer rounded-[9px] px-3 py-2 text-[13px] font-medium transition-colors min-[900px]:min-w-[54px] min-[900px]:px-4 min-[900px]:py-2.5 min-[900px]:text-[15px] ${
+                    selected
+                      ? "bg-accent-bg text-accent"
+                      : available
+                        ? "text-ink hover:text-accent-bright"
+                        : "text-ink-ghost"
+                  }`}
+                >
+                  {rootName(rootFromPitchClass(pitchClass, 4, spelling))}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Sits above the Pro switch, so the two display options are
+            together and neither is mistaken for a chord control. */}
         <div
-          role="tablist"
-          aria-label="Chord root"
-          className="flex w-max gap-1 rounded-[12px] border border-edge bg-panel p-[3px]"
+          role="group"
+          aria-label="Note spelling"
+          className="flex flex-none rounded-[12px] border border-edge bg-panel p-[3px]"
         >
-          {ROOTS.map((root) => {
-            const selected = root.pitchClass === rootPitchClass;
-            const available = findShape(root.pitchClass, quality) !== undefined;
-            return (
-              <button
-                key={root.pitchClass}
-                role="tab"
-                type="button"
-                aria-selected={selected}
-                onClick={() => setRootPitchClass(root.pitchClass)}
-                className={`min-w-[42px] cursor-pointer rounded-[9px] px-3 py-2 text-[13px] font-medium transition-colors min-[900px]:min-w-[54px] min-[900px]:px-4 min-[900px]:py-2.5 min-[900px]:text-[15px] ${
-                  selected
-                    ? "bg-accent-bg text-accent"
-                    : available
-                      ? "text-ink hover:text-accent-bright"
-                      : "text-ink-ghost"
-                }`}
-              >
-                {root.name}
-              </button>
-            );
-          })}
+          {SPELLINGS.map(({ value, label, hint }) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={spelling === value}
+              title={hint}
+              onClick={() => setSpelling(value)}
+              className={`cursor-pointer rounded-[9px] px-3 py-2 text-[13px] font-medium transition-colors min-[900px]:py-2.5 min-[900px]:text-[15px] ${
+                spelling === value
+                  ? "bg-accent-bg text-accent"
+                  : "text-ink-muted hover:text-ink"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -126,10 +165,7 @@ export function ChordBrowser() {
         </div>
       </div>
 
-      <ScaleRow
-        tonic={rootFromPitchClass(rootPitchClass)}
-        quality={quality}
-      />
+      <ScaleRow tonic={root} quality={quality} />
 
       {/*
         * Two columns, with the right one always present. Genius does this

@@ -70,7 +70,10 @@ function accidentalText(note: Note): string {
     : note.accidental === -1
       ? "♭"
       : note.accidental === 2
-        ? "×"
+        ? // The traditional double-sharp glyph is U+1D12A, which most fonts
+          // do not carry and render as a blank box. An × is what engravers
+          // used before it existed and what chord charts still print.
+          "×"
         : note.accidental === -2
           ? "♭♭"
           : "";
@@ -113,14 +116,46 @@ export function toneAt(chord: Chord, midi: number): ChordTone | null {
   return { note: spellAs(midi, match.note.letter), degree: match.degree };
 }
 
-/** Semitones above C, for building a root from a tab selection. */
-export function rootFromPitchClass(pitchClass: number, octave = 4): Note {
-  // Conventional guitar naming, the same table the tuner uses for roots.
-  const spelling: ReadonlyArray<readonly [Letter, -1 | 0 | 1]> = [
+/**
+ * How a root should be named when its pitch could be spelled either way.
+ *
+ * `conventional` is what guitarists actually write, and it mixes the two:
+ * E♭ and C♯, not D♯ and D♭. That inconsistency is not sloppiness — it is
+ * each key being called by the name that needs fewest accidentals — but
+ * someone who wants one or the other throughout should be able to say so.
+ */
+export type RootSpelling = "conventional" | "sharp" | "flat";
+
+const ROOT_NAMES: Record<RootSpelling, ReadonlyArray<readonly [Letter, -1 | 0 | 1]>> = {
+  conventional: [
     ["C", 0], ["C", 1], ["D", 0], ["E", -1], ["E", 0], ["F", 0],
     ["F", 1], ["G", 0], ["A", -1], ["A", 0], ["B", -1], ["B", 0],
-  ];
-  const [letter, accidental] = spelling[((pitchClass % 12) + 12) % 12];
+  ],
+  sharp: [
+    ["C", 0], ["C", 1], ["D", 0], ["D", 1], ["E", 0], ["F", 0],
+    ["F", 1], ["G", 0], ["G", 1], ["A", 0], ["A", 1], ["B", 0],
+  ],
+  flat: [
+    ["C", 0], ["D", -1], ["D", 0], ["E", -1], ["E", 0], ["F", 0],
+    ["G", -1], ["G", 0], ["A", -1], ["A", 0], ["B", -1], ["B", 0],
+  ],
+};
+
+/**
+ * Build a root from a pitch class.
+ *
+ * Only the root's own name is chosen here. Everything else follows from it
+ * by letter-stepping, which is why asking for sharps throughout produces
+ * D♯ major as D♯ F𝄪 A♯ — the third of a D♯ chord has to be some kind of F,
+ * and the F that sounds right is a double sharp. That is the honest answer,
+ * and the reason the conventional naming calls that key E♭ instead.
+ */
+export function rootFromPitchClass(
+  pitchClass: number,
+  octave = 4,
+  spelling: RootSpelling = "conventional",
+): Note {
+  const [letter, accidental] = ROOT_NAMES[spelling][((pitchClass % 12) + 12) % 12];
   const midi = (octave + 1) * 12 + letterSemitones(letter) + accidental;
   return spellAs(midi, letter);
 }

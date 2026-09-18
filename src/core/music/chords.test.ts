@@ -120,3 +120,45 @@ test("roots are named the way guitarists name them", () => {
     "C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B",
   ]);
 });
+
+test("roots can be forced to sharps or flats", () => {
+  const names = (spelling: "conventional" | "sharp" | "flat") =>
+    Array.from({ length: 12 }, (_, pitchClass) =>
+      rootName(rootFromPitchClass(pitchClass, 4, spelling)),
+    ).join(" ");
+
+  assert.equal(names("conventional"), "C C♯ D E♭ E F F♯ G A♭ A B♭ B");
+  assert.equal(names("sharp"), "C C♯ D D♯ E F F♯ G G♯ A A♯ B");
+  assert.equal(names("flat"), "C D♭ D E♭ E F G♭ G A♭ A B♭ B");
+});
+
+test("forcing sharps produces the double sharps those keys really have", () => {
+  /*
+   * Not a defect. The third of a D♯ chord must be some kind of F, and the F
+   * that sounds right is F double-sharp. This is exactly why the
+   * conventional naming calls that key E♭ — and why the app offers the mix
+   * as its default.
+   */
+  const dSharp = buildChord(rootFromPitchClass(3, 4, "sharp"), "major");
+  assert.equal(dSharp.symbol, "D♯");
+  assert.deepEqual(dSharp.tones.map((tone) => rootName(tone.note)), ["D♯", "F×", "A♯"]);
+
+  // The same pitches, named the conventional way, need no such thing.
+  const eFlat = buildChord(rootFromPitchClass(3, 4, "flat"), "major");
+  assert.deepEqual(eFlat.tones.map((tone) => rootName(tone.note)), ["E♭", "G", "B♭"]);
+  assert.deepEqual(
+    dSharp.tones.map((tone) => midiOf(tone.note)),
+    eFlat.tones.map((tone) => midiOf(tone.note)),
+    "same sounds either way",
+  );
+});
+
+test("the spelling choice carries through to the whole key", () => {
+  const flat = buildChord(rootFromPitchClass(1, 4, "flat"), "major");
+  assert.equal(flat.symbol, "D♭");
+  assert.deepEqual(flat.tones.map((tone) => rootName(tone.note)), ["D♭", "F", "A♭"]);
+
+  const sharp = buildChord(rootFromPitchClass(1, 4, "sharp"), "major");
+  assert.equal(sharp.symbol, "C♯");
+  assert.deepEqual(sharp.tones.map((tone) => rootName(tone.note)), ["C♯", "E♯", "G♯"]);
+});
