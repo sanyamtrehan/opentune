@@ -205,29 +205,31 @@ export function ChordBrowser() {
           {shape && (
             <div className="flex w-full flex-col items-center gap-3">
               <PositionSlider
-                count={positions.length}
+                items={positions.map((candidate) => (
+                  <div
+                    key={candidate.id}
+                    className="mx-auto w-full"
+                    style={{ aspectRatio: "248 / 250", maxHeight: "min(56vh, 500px)" }}
+                  >
+                    <ChordDiagram
+                      shape={candidate}
+                      noteNames={
+                        pro
+                          ? analyseShape(candidate, chord, STANDARD).strings.map(
+                              (string) =>
+                                string.note
+                                  ? rootName(respell(string.note, spelling))
+                                  : null,
+                            )
+                          : undefined
+                      }
+                    />
+                  </div>
+                ))}
                 index={position}
                 onChange={setChosenPosition}
                 label={shape.name}
-              >
-              <div
-                className="mx-auto w-full max-w-[260px] flex-none min-[900px]:max-w-[460px]"
-                style={{ aspectRatio: "248 / 250", maxHeight: "min(56vh, 500px)" }}
-              >
-                <ChordDiagram
-                  shape={shape}
-                  noteNames={
-                    pro && analysis
-                      ? analysis.strings.map((string) =>
-                          string.note
-                            ? rootName(respell(string.note, spelling))
-                            : null,
-                        )
-                      : undefined
-                  }
-                />
-              </div>
-              </PositionSlider>
+              />
 
               <div className="flex w-full max-w-[260px] items-end justify-between min-[900px]:max-w-[460px]">
                 {/* Which of the positions is showing, and how to move between
