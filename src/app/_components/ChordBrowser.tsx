@@ -165,7 +165,7 @@ export function ChordBrowser() {
         </div>
       </div>
 
-      <ScaleRow tonic={root} quality={quality} spelling={spelling} />
+      <ScaleRow tonic={root} quality={quality} spelling={spelling} chord={chord} />
 
       {/*
         * Two columns, with the right one always present. Genius does this
