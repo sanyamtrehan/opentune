@@ -16,6 +16,7 @@
  * in the place you were looking.
  */
 
+import { baseFret } from "@/core/chords/positions.ts";
 import type { ChordShape, Finger } from "@/core/chords/shapes.ts";
 
 const VIEW_WIDTH = 248;
@@ -67,6 +68,14 @@ export interface ChordDiagramProps {
 }
 
 export function ChordDiagram({ shape, noteNames }: ChordDiagramProps) {
+  /*
+   * Where the window onto the neck starts. Open shapes draw from the nut;
+   * anything higher drops the nut, labels its top fret and draws four frets
+   * from there — the alternative is a diagram the length of the neck.
+   */
+  const base = baseFret(shape);
+  const atNut = base === 1;
+  const rowFor = (fret: number) => NUT_Y + (fret - base + 0.5) * FRET_GAP;
   // Fixed height: the open-string names sit inside their own markers now, so
   // nothing about the geometry changes between modes and the diagram cannot
   // shift under someone reading it.
@@ -139,15 +148,27 @@ export function ChordDiagram({ shape, noteNames }: ChordDiagramProps) {
         fill="var(--color-board-face)"
       />
 
-      {/* Nut, sitting on top of the board and spanning its full width. */}
-      <rect
-        x={BOARD_X}
-        y={NUT_Y - 7}
-        width={BOARD_WIDTH}
-        height="9"
-        rx="3"
-        fill="var(--color-nut)"
-      />
+      {/* The nut, when the shape reaches it. Higher up the neck there is no
+          nut in view, just another fret. */}
+      {atNut ? (
+        <rect
+          x={BOARD_X}
+          y={NUT_Y - 7}
+          width={BOARD_WIDTH}
+          height="9"
+          rx="3"
+          fill="var(--color-nut)"
+        />
+      ) : (
+        <line
+          x1={BOARD_X}
+          y1={NUT_Y}
+          x2={BOARD_X + BOARD_WIDTH}
+          y2={NUT_Y}
+          stroke="var(--color-fret)"
+          strokeWidth="2"
+        />
+      )}
 
       {Array.from({ length: FRET_COUNT }, (_, i) => (
         <line
@@ -174,7 +195,7 @@ export function ChordDiagram({ shape, noteNames }: ChordDiagramProps) {
           fontSize="13"
           fill="var(--color-ink-faint)"
         >
-          {i + 1}
+          {base + i}
         </text>
       ))}
 
@@ -210,10 +231,32 @@ export function ChordDiagram({ shape, noteNames }: ChordDiagramProps) {
         ) : null,
       )}
 
+      {/* The barre: one finger laid flat, drawn as the bar it is rather than
+          as a row of separate dots. */}
+      {shape.barre && (
+        <rect
+          x={STRING_X[shape.barre.from] - 15}
+          y={rowFor(shape.barre.fret) - 15}
+          width={STRING_X[shape.barre.to] - STRING_X[shape.barre.from] + 30}
+          height="30"
+          rx="15"
+          fill={FINGER_COLOURS[1]}
+        />
+      )}
+
       {shape.frets.map((fret, index) => {
         if (fret === "muted" || fret === 0) return null;
         const finger = shape.fingers[index]!;
-        const cy = NUT_Y + (fret - 0.5) * FRET_GAP;
+        // Strings held down by the barre are already under the bar.
+        if (
+          shape.barre &&
+          fret === shape.barre.fret &&
+          index >= shape.barre.from &&
+          index <= shape.barre.to
+        ) {
+          return null;
+        }
+        const cy = rowFor(fret);
         const label = noteNames?.[index] ?? String(finger);
         return (
           <g key={index}>

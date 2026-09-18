@@ -22,13 +22,17 @@ export type Finger = 1 | 2 | 3 | 4 | null;
 
 export interface ChordShape {
   id: string;
+  /** What a player calls it: "Open", "E shape, 3rd fret". */
+  name: string;
   /** Semitones above C, so the root tabs can find it. */
   rootPitchClass: number;
   quality: ChordQuality;
-  /** Low string first, six entries. */
+  /** Low string first, six entries. Absolute fret numbers; 0 is open. */
   frets: FretPosition[];
   /** Low string first, six entries, aligned with `frets`. */
   fingers: Finger[];
+  /** One finger flattened across a run of strings, for barre shapes. */
+  barre?: { fret: number; from: number; to: number };
 }
 
 const M = "muted" as const;
@@ -41,6 +45,7 @@ const M = "muted" as const;
 export const OPEN_SHAPES: readonly ChordShape[] = [
   {
     id: "c-major",
+    name: "Open",
     rootPitchClass: 0,
     quality: "major",
     frets: [M, 3, 2, 0, 1, 0],
@@ -48,6 +53,7 @@ export const OPEN_SHAPES: readonly ChordShape[] = [
   },
   {
     id: "d-major",
+    name: "Open",
     rootPitchClass: 2,
     quality: "major",
     frets: [M, M, 0, 2, 3, 2],
@@ -55,6 +61,7 @@ export const OPEN_SHAPES: readonly ChordShape[] = [
   },
   {
     id: "e-major",
+    name: "Open",
     rootPitchClass: 4,
     quality: "major",
     frets: [0, 2, 2, 1, 0, 0],
@@ -62,6 +69,7 @@ export const OPEN_SHAPES: readonly ChordShape[] = [
   },
   {
     id: "g-major",
+    name: "Open",
     rootPitchClass: 7,
     quality: "major",
     frets: [3, 2, 0, 0, 0, 3],
@@ -69,6 +77,7 @@ export const OPEN_SHAPES: readonly ChordShape[] = [
   },
   {
     id: "a-major",
+    name: "Open",
     rootPitchClass: 9,
     quality: "major",
     frets: [M, 0, 2, 2, 2, 0],
@@ -76,6 +85,7 @@ export const OPEN_SHAPES: readonly ChordShape[] = [
   },
   {
     id: "d-minor",
+    name: "Open",
     rootPitchClass: 2,
     quality: "minor",
     frets: [M, M, 0, 2, 3, 1],
@@ -83,6 +93,7 @@ export const OPEN_SHAPES: readonly ChordShape[] = [
   },
   {
     id: "e-minor",
+    name: "Open",
     rootPitchClass: 4,
     quality: "minor",
     frets: [0, 2, 2, 0, 0, 0],
@@ -90,6 +101,7 @@ export const OPEN_SHAPES: readonly ChordShape[] = [
   },
   {
     id: "a-minor",
+    name: "Open",
     rootPitchClass: 9,
     quality: "minor",
     frets: [M, 0, 2, 2, 1, 0],

@@ -78,6 +78,7 @@ test("an inversion is detected and reported", () => {
   const chord = buildChord(rootFromPitchClass(0), "major");
   const slash = {
     id: "c-over-e",
+    name: "Test",
     rootPitchClass: 0,
     quality: "major" as const,
     frets: [0, 3, 2, 0, 1, 0],
@@ -94,6 +95,7 @@ test("a missing chord tone is reported rather than glossed over", () => {
   const chord = buildChord(rootFromPitchClass(4), "major");
   const fifth = {
     id: "e5",
+    name: "Test",
     rootPitchClass: 4,
     quality: "major" as const,
     frets: [0, 2, 2, "muted" as const, "muted" as const, "muted" as const],
@@ -111,6 +113,7 @@ test("it works in a tuning that is not standard", () => {
   const chord = buildChord(rootFromPitchClass(2), "major");
   const allOpen = {
     id: "dadgad-open",
+    name: "Test",
     rootPitchClass: 2,
     quality: "major" as const,
     frets: [0, 0, 0, 0, 0, 0],

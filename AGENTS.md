@@ -27,9 +27,15 @@ on the web, and works offline.
 **v1 (current):** 6-string guitar only. Two tuning modes, preset tunings plus
 user-defined tunings. No accounts, no backend, no database. Fully client-side.
 
-**Explicitly deferred:** 7/8-string, bass, ukulele, other instruments; music
-theory features (scales, triads, diatonic harmony, pentatonics); song-to-tuning
-lookup; play-along / playthrough.
+**Since added to v1:** a chord library — major and minor in every key, with
+their positions on the neck, the notes each shape actually sounds, and the
+diatonic harmony of the key. This was in the deferred "bounded" bucket and
+was pulled forward deliberately. It is the payoff for the spelled-note
+decision below: none of it is expressible with 0-11 pitch classes.
+
+**Still explicitly deferred:** 7/8-string, bass, ukulele, other instruments;
+sevenths, sus and extended chords; pentatonics and scale shapes on the neck;
+song-to-tuning lookup; play-along / playthrough.
 
 ## The two tuning modes
 

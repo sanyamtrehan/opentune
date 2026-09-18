@@ -9,12 +9,12 @@
  * shape of what is coming.
  */
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { buildChord, respell, rootFromPitchClass, rootName } from "@/core/music/chords.ts";
 import type { RootSpelling } from "@/core/music/chords.ts";
 import { analyseShape } from "@/core/chords/analysis.ts";
-import { findShape } from "@/core/chords/shapes.ts";
+import { positionsFor } from "@/core/chords/positions.ts";
 import { findPreset } from "@/core/tunings/presets.ts";
 import { resolveShape } from "@/core/tunings/resolve.ts";
 
@@ -50,12 +50,21 @@ export function ChordBrowser() {
   const [quality, setQuality] = useState<"major" | "minor">("major");
   const [spelling, setSpelling] = useState<RootSpelling>("conventional");
   const [pro, setPro] = useState(false);
+  const [chosenPosition, setChosenPosition] = useState(0);
 
   // Only the root's name is chosen; every other note follows from it by
   // letter-stepping, so the whole chord and the whole key change together.
   const root = rootFromPitchClass(rootPitchClass, 4, spelling);
   const chord = buildChord(root, quality);
-  const shape = findShape(rootPitchClass, quality);
+
+  const positions = useMemo(
+    () => positionsFor(rootPitchClass, quality, STANDARD),
+    [quality, rootPitchClass],
+  );
+  // Clamped rather than reset: moving from a chord with four positions to
+  // one with two should land on the last, not jump back to the first.
+  const position = Math.min(chosenPosition, positions.length - 1);
+  const shape = positions[position];
   const analysis = shape ? analyseShape(shape, chord, STANDARD) : null;
 
   return (
@@ -73,7 +82,6 @@ export function ChordBrowser() {
           >
             {Array.from({ length: 12 }, (_, pitchClass) => {
               const selected = pitchClass === rootPitchClass;
-              const available = findShape(pitchClass, quality) !== undefined;
               return (
                 <button
                   key={pitchClass}
@@ -84,9 +92,7 @@ export function ChordBrowser() {
                   className={`min-w-[42px] cursor-pointer rounded-[9px] px-3 py-2 text-[13px] font-medium transition-colors min-[900px]:min-w-[54px] min-[900px]:px-4 min-[900px]:py-2.5 min-[900px]:text-[15px] ${
                     selected
                       ? "bg-accent-bg text-accent"
-                      : available
-                        ? "text-ink hover:text-accent-bright"
-                        : "text-ink-ghost"
+                      : "text-ink hover:text-accent-bright"
                   }`}
                 >
                   {rootName(rootFromPitchClass(pitchClass, 4, spelling))}
@@ -195,7 +201,7 @@ export function ChordBrowser() {
             {chord.symbol}
           </h1>
 
-          {shape ? (
+          {shape && (
             <div className="flex w-full flex-col items-center gap-3">
               <div
                 className="w-full max-w-[260px] flex-none min-[900px]:max-w-[460px]"
@@ -215,18 +221,39 @@ export function ChordBrowser() {
                 />
               </div>
 
-              {/* Tucked into the corner rather than standing beside the
-                  diagram: it is a key, not a second subject. */}
-              <div className="flex w-full max-w-[260px] justify-end min-[900px]:max-w-[460px]">
+              <div className="flex w-full max-w-[260px] items-end justify-between min-[900px]:max-w-[460px]">
+                {/* Which of the positions is showing, and how to move between
+                    them. Dots rather than a list: they say "there are more
+                    of these" without naming any of them. */}
+                <div className="flex flex-col gap-2">
+                  <span className="text-[12px] text-ink-muted min-[900px]:text-[14px]">
+                    {shape.name}
+                  </span>
+                  {positions.length > 1 && (
+                    <div className="flex items-center gap-2">
+                      {positions.map((candidate, index) => (
+                        <button
+                          key={candidate.id}
+                          type="button"
+                          aria-label={`Position ${index + 1}: ${candidate.name}`}
+                          aria-pressed={index === position}
+                          onClick={() => setChosenPosition(index)}
+                          className={`h-2.5 cursor-pointer rounded-full transition-all ${
+                            index === position
+                              ? "w-6 bg-accent"
+                              : "w-2.5 bg-edge-strong hover:bg-ink-faint"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Tucked into the corner rather than standing beside the
+                    diagram: it is a key, not a second subject. */}
                 <HandLegend used={fingersUsed(shape)} />
               </div>
             </div>
-          ) : (
-            <p className="max-w-[18rem] text-center text-[13px] text-ink-muted">
-              {chord.symbol} is played as a barre chord, which this first draft
-              does not cover yet. The eight open chords are C, D, E, G, A, Dm,
-              Em and Am.
-            </p>
           )}
         </section>
 
