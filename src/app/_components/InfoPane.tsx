@@ -39,7 +39,7 @@ export function InfoPane({ chord, analysis, pro }: InfoPaneProps) {
       // Sized to its content. Stretching it to the row height left a mostly
       // empty box the height of the diagram, which read as a rendering fault
       // rather than as a panel.
-      className="w-full rounded-2xl border border-edge bg-panel/70 p-4 text-[13px] leading-relaxed min-[900px]:sticky min-[900px]:top-2"
+      className="w-full rounded-2xl border border-edge bg-panel/70 p-4 text-[13px] leading-relaxed min-[900px]:p-6 min-[900px]:text-[15px] min-[900px]:sticky min-[900px]:top-2"
     >
       <h2 className="label-caps mb-3">What you are holding</h2>
 

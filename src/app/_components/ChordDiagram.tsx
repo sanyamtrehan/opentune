@@ -36,7 +36,11 @@ const BOARD_WIDTH = STRING_X[5] - STRING_X[0] + BOARD_PAD * 2;
 const BOARD_HEIGHT = FRET_COUNT * FRET_GAP;
 
 /** Open-string marker. Large enough to hold a note name inside it. */
-const OPEN_RADIUS = 12;
+const OPEN_RADIUS = 11;
+
+/** Where the open/muted markers sit. Far enough above the nut to clear it —
+ *  at 26 they touched the nut bar and read as part of the board. */
+const MARKER_Y = 17;
 
 export const FINGER_NAMES: Record<Exclude<Finger, null>, string> = {
   1: "Index",
@@ -89,8 +93,8 @@ export function ChordDiagram({ shape, noteNames }: ChordDiagramProps) {
         if (fret === "muted") {
           return (
             <g key={index} stroke="var(--color-muted-string)" strokeWidth="2.6" strokeLinecap="round">
-              <line x1={x - 6} y1={20} x2={x + 6} y2={32} />
-              <line x1={x + 6} y1={20} x2={x - 6} y2={32} />
+              <line x1={x - 6} y1={MARKER_Y - 6} x2={x + 6} y2={MARKER_Y + 6} />
+              <line x1={x + 6} y1={MARKER_Y - 6} x2={x - 6} y2={MARKER_Y + 6} />
             </g>
           );
         }
@@ -100,7 +104,7 @@ export function ChordDiagram({ shape, noteNames }: ChordDiagramProps) {
             <g key={index}>
               <circle
                 cx={x}
-                cy={26}
+                cy={MARKER_Y}
                 r={OPEN_RADIUS}
                 fill="none"
                 stroke="var(--color-ink-muted)"
@@ -109,7 +113,7 @@ export function ChordDiagram({ shape, noteNames }: ChordDiagramProps) {
               {name && (
                 <text
                   x={x}
-                  y={31}
+                  y={MARKER_Y + 5}
                   textAnchor="middle"
                   fontFamily="var(--font-mono)"
                   fontSize={name.length > 1 ? 11 : 13}

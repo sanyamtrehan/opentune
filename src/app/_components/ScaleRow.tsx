@@ -35,16 +35,20 @@ export function ScaleRow({ tonic, quality }: ScaleRowProps) {
   return (
     <section
       aria-label={`Chords in the key of ${rootName(tonic)} ${quality}`}
-      className="mx-auto w-full max-w-[920px] flex-none overflow-x-auto px-[clamp(16px,4vw,28px)] pb-3"
+      className="mx-auto w-full max-w-[1240px] flex-none overflow-x-auto px-[clamp(16px,4vw,28px)] pb-3"
     >
       <div className="flex w-max min-w-full gap-1.5">
         {chords.map((entry) => (
           <div
             key={entry.degree}
-            className="flex flex-1 flex-col items-center gap-0.5 rounded-[10px] border border-edge bg-panel px-2 py-1.5"
+            className="flex flex-1 flex-col items-center gap-0.5 rounded-[10px] border border-edge bg-panel px-2 py-1.5 min-[900px]:gap-1 min-[900px]:px-4 min-[900px]:py-2.5"
           >
-            <span className="font-mono text-[11px] text-ink-faint">{entry.numeral}</span>
-            <span className="text-[13px] font-medium text-ink">{entry.chord.symbol}</span>
+            <span className="font-mono text-[11px] text-ink-faint min-[900px]:text-[13px]">
+              {entry.numeral}
+            </span>
+            <span className="text-[13px] font-medium text-ink min-[900px]:text-[16px]">
+              {entry.chord.symbol}
+            </span>
           </div>
         ))}
       </div>

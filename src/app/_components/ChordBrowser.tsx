@@ -52,7 +52,7 @@ export function ChordBrowser() {
 
       {/* Roots scroll rather than wrap: twelve tabs do not fit a phone, and
           wrapping them onto two rows implies a grouping that is not real. */}
-      <div className="mx-auto w-full max-w-[1120px] flex-none overflow-x-auto px-[clamp(16px,4vw,28px)] pb-2">
+      <div className="mx-auto w-full max-w-[1240px] flex-none overflow-x-auto px-[clamp(16px,4vw,28px)] pb-2">
         <div
           role="tablist"
           aria-label="Chord root"
@@ -68,7 +68,7 @@ export function ChordBrowser() {
                 type="button"
                 aria-selected={selected}
                 onClick={() => setRootPitchClass(root.pitchClass)}
-                className={`min-w-[42px] cursor-pointer rounded-[9px] px-3 py-2 text-[13px] font-medium transition-colors ${
+                className={`min-w-[42px] cursor-pointer rounded-[9px] px-3 py-2 text-[13px] font-medium transition-colors min-[900px]:min-w-[54px] min-[900px]:px-4 min-[900px]:py-2.5 min-[900px]:text-[15px] ${
                   selected
                     ? "bg-accent-bg text-accent"
                     : available
@@ -83,7 +83,7 @@ export function ChordBrowser() {
         </div>
       </div>
 
-      <div className="mx-auto flex w-full max-w-[1120px] flex-none gap-[10px] px-[clamp(16px,4vw,28px)] pb-3">
+      <div className="mx-auto flex w-full max-w-[1240px] flex-none gap-[10px] px-[clamp(16px,4vw,28px)] pb-3">
         <div className="flex flex-none rounded-[12px] border border-edge bg-panel p-[3px]">
           {QUALITIES.map(({ value, label }) => (
             <button
@@ -91,7 +91,7 @@ export function ChordBrowser() {
               type="button"
               aria-pressed={quality === value}
               onClick={() => setQuality(value)}
-              className={`cursor-pointer rounded-[9px] px-[18px] py-2 text-[13px] font-medium transition-colors ${
+              className={`cursor-pointer rounded-[9px] px-[18px] py-2 text-[13px] font-medium transition-colors min-[900px]:px-6 min-[900px]:py-2.5 min-[900px]:text-[15px] ${
                 quality === value ? "bg-accent-bg text-accent" : "text-ink-muted hover:text-ink"
               }`}
             >
@@ -139,17 +139,25 @@ export function ChordBrowser() {
         * room beside it, so the pane sits underneath — still always
         * rendered, for the same reason.
         */}
-      <main className="mx-auto grid min-h-0 w-full max-w-[1120px] flex-1 grid-cols-1 items-start gap-x-10 gap-y-6 overflow-y-auto px-[clamp(16px,4vw,28px)] pb-[max(14px,env(safe-area-inset-bottom))] min-[900px]:grid-cols-[minmax(0,1fr)_minmax(320px,380px)]">
+      {/*
+        * `content-center` matters as much as the widths here. The grid used
+        * to sit at the top of whatever height was left, which on a tall
+        * screen put everything in the upper third with a dead half below.
+        * Centring the tracks, and letting the diagram grow with the
+        * viewport rather than stopping at a fixed pixel cap, is what
+        * actually uses the space.
+        */}
+      <main className="mx-auto grid min-h-0 w-full max-w-[1240px] flex-1 grid-cols-1 content-center items-start gap-x-[clamp(1.5rem,4vw,3.5rem)] gap-y-8 overflow-y-auto px-[clamp(16px,4vw,40px)] pb-[max(14px,env(safe-area-inset-bottom))] min-[900px]:grid-cols-[minmax(0,1fr)_380px]">
         <section className="flex flex-col items-center justify-center gap-5">
-          <h1 className="flex-none text-[28px] leading-none font-bold tracking-tight min-[900px]:text-[40px]">
+          <h1 className="flex-none text-[28px] leading-none font-bold tracking-tight min-[900px]:text-[52px]">
             {chord.symbol}
           </h1>
 
           {shape ? (
             <div className="flex w-full flex-col items-center gap-3">
               <div
-                className="w-full max-w-[250px] flex-none min-[900px]:max-w-[320px]"
-                style={{ aspectRatio: "248 / 250", maxHeight: "min(48vh, 360px)" }}
+                className="w-full max-w-[260px] flex-none min-[900px]:max-w-[460px]"
+                style={{ aspectRatio: "248 / 250", maxHeight: "min(56vh, 500px)" }}
               >
                 <ChordDiagram
                   shape={shape}
@@ -165,7 +173,7 @@ export function ChordBrowser() {
 
               {/* Tucked into the corner rather than standing beside the
                   diagram: it is a key, not a second subject. */}
-              <div className="flex w-full max-w-[320px] justify-end">
+              <div className="flex w-full max-w-[260px] justify-end min-[900px]:max-w-[460px]">
                 <HandLegend used={fingersUsed(shape)} />
               </div>
             </div>
