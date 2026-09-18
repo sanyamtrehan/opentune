@@ -9,8 +9,11 @@
  * it as a diagram, and matching the convention matters more than matching
  * the other screen.
  *
- * Dots are coloured by finger. Colour is never the only cue: each dot is
- * labelled for screen readers and the legend beside the diagram names them.
+ * Dots are coloured by finger and carry a label: the finger number normally,
+ * the note name in pro mode. That makes the colour a reinforcement rather
+ * than the only cue, which a legend of swatches never managed — you had to
+ * translate swatch to word to finger, and the answer was already available
+ * in the place you were looking.
  */
 
 import type { ChordShape, Finger } from "@/core/chords/shapes.ts";
@@ -22,6 +25,9 @@ const STRING_X = [20, 56, 92, 128, 164, 200];
 const NUT_Y = 44;
 const FRET_GAP = 46;
 const FRET_COUNT = 4;
+
+/** Space under the diagram for open-string note names, always reserved. */
+const LABEL_ROW = 34;
 
 export const FINGER_NAMES: Record<Exclude<Finger, null>, string> = {
   1: "Index",
@@ -39,12 +45,23 @@ export const FINGER_COLOURS: Record<Exclude<Finger, null>, string> = {
 
 export interface ChordDiagramProps {
   shape: ChordShape;
-  /** Optional note name under each string, for pro mode. */
-  labels?: (string | null)[];
+  /**
+   * Note name per string, low first, for pro mode. Fretted strings show
+   * theirs inside the dot; open strings have no dot, so theirs goes under
+   * the diagram. Every sounding string is named exactly once.
+   */
+  noteNames?: (string | null)[];
 }
 
-export function ChordDiagram({ shape, labels }: ChordDiagramProps) {
-  const height = labels ? VIEW_HEIGHT + 34 : VIEW_HEIGHT;
+export function ChordDiagram({ shape, noteNames }: ChordDiagramProps) {
+  /*
+   * The viewBox always reserves room for the open-string labels, even when
+   * they are not drawn. Growing it in pro mode shrank the whole diagram to
+   * fit the same box, so turning Pro on nudged the chord you were reading —
+   * the shift this layout exists to avoid.
+   */
+  const height = VIEW_HEIGHT + LABEL_ROW;
+  const showOpenLabels = noteNames !== undefined;
 
   return (
     <svg
@@ -119,32 +136,43 @@ export function ChordDiagram({ shape, labels }: ChordDiagramProps) {
       {shape.frets.map((fret, index) => {
         if (fret === "muted" || fret === 0) return null;
         const finger = shape.fingers[index]!;
+        const cy = NUT_Y + (fret - 0.5) * FRET_GAP;
+        const label = noteNames?.[index] ?? String(finger);
         return (
-          <circle
-            key={index}
-            cx={STRING_X[index]}
-            cy={NUT_Y + (fret - 0.5) * FRET_GAP}
-            r="14"
-            fill={FINGER_COLOURS[finger]}
-          />
+          <g key={index}>
+            <circle cx={STRING_X[index]} cy={cy} r="15" fill={FINGER_COLOURS[finger]} />
+            <text
+              x={STRING_X[index]}
+              y={cy + 5}
+              textAnchor="middle"
+              fontFamily="var(--font-mono)"
+              fontSize={label.length > 1 ? 13 : 15}
+              fontWeight="600"
+              fill="var(--color-ground)"
+            >
+              {label}
+            </text>
+          </g>
         );
       })}
 
-      {labels?.map((label, index) =>
-        label === null ? null : (
-          <text
-            key={index}
-            x={STRING_X[index]}
-            y={NUT_Y + FRET_COUNT * FRET_GAP + 26}
-            textAnchor="middle"
-            fontFamily="var(--font-mono)"
-            fontSize="15"
-            fill="var(--color-ink-muted)"
-          >
-            {label}
-          </text>
-        ),
-      )}
+      {/* Open strings have no dot to write in, so they are named underneath. */}
+      {showOpenLabels &&
+        shape.frets.map((fret, index) =>
+          fret === 0 && noteNames?.[index] ? (
+            <text
+              key={index}
+              x={STRING_X[index]}
+              y={NUT_Y + FRET_COUNT * FRET_GAP + 26}
+              textAnchor="middle"
+              fontFamily="var(--font-mono)"
+              fontSize="15"
+              fill="var(--color-ink-muted)"
+            >
+              {noteNames[index]}
+            </text>
+          ) : null,
+        )}
     </svg>
   );
 }

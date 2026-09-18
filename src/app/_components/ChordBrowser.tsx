@@ -18,10 +18,9 @@ import { findShape } from "@/core/chords/shapes.ts";
 import { findPreset } from "@/core/tunings/presets.ts";
 import { resolveShape } from "@/core/tunings/resolve.ts";
 
-import { ChordDiagram, fingersUsed } from "./ChordDiagram";
-import { HandLegend } from "./HandLegend";
+import { ChordDiagram } from "./ChordDiagram";
 import { Header } from "./Header";
-import { ProPanel } from "./ProPanel";
+import { InfoPane } from "./InfoPane";
 
 /** Shapes are standard-tuning only in this draft, so the analysis is too. */
 const STANDARD = resolveShape(findPreset("standard")!).strings;
@@ -51,7 +50,7 @@ export function ChordBrowser() {
 
       {/* Roots scroll rather than wrap: twelve tabs do not fit a phone, and
           wrapping them onto two rows implies a grouping that is not real. */}
-      <div className="flex-none overflow-x-auto px-[clamp(16px,4vw,28px)] pb-2">
+      <div className="mx-auto w-full max-w-[920px] flex-none overflow-x-auto px-[clamp(16px,4vw,28px)] pb-2">
         <div
           role="tablist"
           aria-label="Chord root"
@@ -82,7 +81,7 @@ export function ChordBrowser() {
         </div>
       </div>
 
-      <div className="mx-auto flex w-full max-w-[620px] flex-none gap-[10px] px-[clamp(16px,4vw,28px)] pb-3">
+      <div className="mx-auto flex w-full max-w-[920px] flex-none gap-[10px] px-[clamp(16px,4vw,28px)] pb-3">
         <div className="flex flex-none rounded-[12px] border border-edge bg-panel p-[3px]">
           {QUALITIES.map(({ value, label }) => (
             <button
@@ -125,26 +124,28 @@ export function ChordBrowser() {
         </div>
       </div>
 
-      <main
-        data-pro={pro}
-        className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 overflow-y-auto data-[pro=true]:justify-start px-[clamp(16px,4vw,28px)] pb-[max(14px,env(safe-area-inset-bottom))]"
-      >
-        <h1 className="flex-none text-[28px] leading-none font-bold tracking-tight">
-          {chord.symbol}
-        </h1>
+      {/*
+        * Two columns, with the right one always present. Genius does this
+        * with its annotations: reserving the space means turning Pro on
+        * fills a pane rather than reflowing the page, and the diagram you
+        * are reading never moves under your eyes. Below 900px there is no
+        * room beside it, so the pane sits underneath — still always
+        * rendered, for the same reason.
+        */}
+      <main className="mx-auto grid w-full max-w-[920px] min-h-0 flex-1 grid-cols-1 items-start gap-5 overflow-y-auto px-[clamp(16px,4vw,28px)] pb-[max(14px,env(safe-area-inset-bottom))] min-[900px]:grid-cols-[minmax(0,1fr)_320px]">
+        <section className="flex flex-col items-center gap-4">
+          <h1 className="flex-none text-[28px] leading-none font-bold tracking-tight">
+            {chord.symbol}
+          </h1>
 
-        {shape ? (
-          <>
-            {/* Sized by its own aspect ratio rather than stretched to fill:
-                a chord box floating in the middle of two large gaps reads as
-                a layout mistake. */}
+          {shape ? (
             <div
               className="w-full max-w-[260px] flex-none"
-              style={{ aspectRatio: "220 / 250", maxHeight: "min(42vh, 300px)" }}
+              style={{ aspectRatio: "220 / 284", maxHeight: "min(48vh, 340px)" }}
             >
               <ChordDiagram
                 shape={shape}
-                labels={
+                noteNames={
                   pro && analysis
                     ? analysis.strings.map((string) =>
                         string.note ? rootName(string.note) : null,
@@ -153,20 +154,16 @@ export function ChordBrowser() {
                 }
               />
             </div>
-
-            <HandLegend used={fingersUsed(shape)} />
-
-            {pro && analysis && <ProPanel chord={chord} analysis={analysis} />}
-          </>
-        ) : (
-          <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
-            <p className="text-[15px] text-ink">{chord.symbol} has no open shape.</p>
-            <p className="max-w-[18rem] text-[13px] text-ink-muted">
-              It is played as a barre chord, which this first draft does not cover
-              yet. The eight open chords are C, D, E, G, A, Dm, Em and Am.
+          ) : (
+            <p className="max-w-[18rem] text-center text-[13px] text-ink-muted">
+              {chord.symbol} is played as a barre chord, which this first draft
+              does not cover yet. The eight open chords are C, D, E, G, A, Dm,
+              Em and Am.
             </p>
-          </div>
-        )}
+          )}
+        </section>
+
+        <InfoPane chord={chord} analysis={analysis} pro={pro} />
       </main>
     </div>
   );

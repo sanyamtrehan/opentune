@@ -1,15 +1,17 @@
 "use client";
 
 /**
- * What you are actually holding.
+ * The pane beside the diagram.
  *
- * The part of the chord library nobody else does. A diagram tells you where
- * to put your fingers; this tells you what comes out and why — which notes,
- * playing which role, and why the shape looks nothing like the three notes
- * the theory promised.
+ * Always rendered, whether or not Pro is on, so that turning Pro on fills it
+ * rather than reflowing the page — the diagram must not move under someone
+ * who is reading it. With Pro off it still earns its place by naming the
+ * chord's notes; with Pro on it explains them.
  *
- * Written for someone who does not already know the theory, so every line
- * says the thing rather than naming it.
+ * That explanation is the part of the chord library nobody else does. A
+ * diagram tells you where to put your fingers; this tells you what comes out
+ * and why. Written for someone who does not already know the theory, so
+ * every line says the thing rather than naming it.
  */
 
 import { rootName } from "@/core/music/chords.ts";
@@ -18,35 +20,54 @@ import type { ShapeAnalysis } from "@/core/chords/analysis.ts";
 
 const COUNT_WORDS = ["never", "once", "twice", "three times", "four times", "five times", "six times"];
 
-export interface ProPanelProps {
+export interface InfoPaneProps {
   chord: Chord;
-  analysis: ShapeAnalysis;
+  /** Null when this draft has no shape for the chord. */
+  analysis: ShapeAnalysis | null;
+  pro: boolean;
 }
 
-export function ProPanel({ chord, analysis }: ProPanelProps) {
+export function InfoPane({ chord, analysis, pro }: InfoPaneProps) {
   const spelled = chord.tones.map((tone) => rootName(tone.note));
-  const doubled = analysis.degrees.filter((entry) => entry.count > 1);
-  const single = analysis.degrees.filter((entry) => entry.count === 1);
+  const doubled = analysis?.degrees.filter((entry) => entry.count > 1) ?? [];
+  const single = analysis?.degrees.filter((entry) => entry.count === 1) ?? [];
 
   return (
-    <section className="w-full max-w-[420px] flex-none rounded-2xl border border-edge bg-panel/70 p-4 text-[13px] leading-relaxed">
+    <aside
+      // A minimum height so the pane does not resize as you move between
+      // chords, for the same reason it is always rendered.
+      className="w-full rounded-2xl border border-edge bg-panel/70 p-4 text-[13px] leading-relaxed min-[900px]:sticky min-[900px]:top-2 min-[900px]:min-h-[19rem]"
+    >
       <h2 className="label-caps mb-3">What you are holding</h2>
 
       <dl className="flex flex-col gap-3">
         <div>
           <dt className="text-ink-muted">The notes</dt>
           <dd className="mt-0.5 font-mono text-[15px] text-ink">
-            {analysis.strings.map((string, index) => (
-              <span key={index} className={string.note ? "" : "text-ink-faint"}>
-                {string.note ? rootName(string.note) : "×"}
-                {string.degree && (
-                  <span className="text-accent">({string.degree})</span>
-                )}
-                {index < analysis.strings.length - 1 ? " " : ""}
-              </span>
-            ))}
+            {analysis === null ? (
+              spelled.join(" ")
+            ) : (
+              analysis.strings.map((string, index) => (
+                <span key={index} className={string.note ? "" : "text-ink-faint"}>
+                  {string.note ? rootName(string.note) : "×"}
+                  {pro && string.degree && (
+                    <span className="text-accent">({string.degree})</span>
+                  )}
+                  {index < analysis.strings.length - 1 ? " " : ""}
+                </span>
+              ))
+            )}
           </dd>
         </div>
+
+        {!pro && (
+          <p className="text-ink-faint">
+            Turn on Pro to see what each note is doing.
+          </p>
+        )}
+
+        {pro && (
+          <>
 
         <div>
           <dt className="text-ink-muted">Why those notes</dt>
@@ -68,6 +89,7 @@ export function ProPanel({ chord, analysis }: ProPanelProps) {
           </dd>
         </div>
 
+        {analysis && (
         <div>
           <dt className="text-ink-muted">Why six strings, three notes</dt>
           <dd className="mt-0.5 text-ink">
@@ -95,8 +117,9 @@ export function ProPanel({ chord, analysis }: ProPanelProps) {
             )}
           </dd>
         </div>
+        )}
 
-        {analysis.missing.length > 0 && (
+        {analysis && analysis.missing.length > 0 && (
           <div>
             <dt className="text-ink-muted">Left out</dt>
             <dd className="mt-0.5 text-warn">
@@ -110,7 +133,7 @@ export function ProPanel({ chord, analysis }: ProPanelProps) {
           </div>
         )}
 
-        {analysis.inverted && (
+        {analysis?.inverted && (
           <div>
             <dt className="text-ink-muted">Lowest note</dt>
             <dd className="mt-0.5 text-ink">
@@ -120,8 +143,10 @@ export function ProPanel({ chord, analysis }: ProPanelProps) {
             </dd>
           </div>
         )}
+          </>
+        )}
       </dl>
-    </section>
+    </aside>
   );
 }
 
