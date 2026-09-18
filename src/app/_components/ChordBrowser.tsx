@@ -146,9 +146,7 @@ export function ChordBrowser() {
           </h1>
 
           {shape ? (
-            <div className="flex w-full flex-col items-center gap-6 min-[900px]:flex-row min-[900px]:items-center min-[900px]:justify-center min-[900px]:gap-10">
-              {/* On desktop the diagram grows and the hand sits beside it,
-                  which is what the space was already there for. */}
+            <div className="flex w-full flex-col items-center gap-3">
               <div
                 className="w-full max-w-[250px] flex-none min-[900px]:max-w-[320px]"
                 style={{ aspectRatio: "248 / 250", maxHeight: "min(48vh, 360px)" }}
@@ -165,7 +163,11 @@ export function ChordBrowser() {
                 />
               </div>
 
-              <HandLegend used={fingersUsed(shape)} />
+              {/* Tucked into the corner rather than standing beside the
+                  diagram: it is a key, not a second subject. */}
+              <div className="flex w-full max-w-[320px] justify-end">
+                <HandLegend used={fingersUsed(shape)} />
+              </div>
             </div>
           ) : (
             <p className="max-w-[18rem] text-center text-[13px] text-ink-muted">

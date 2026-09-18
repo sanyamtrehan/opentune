@@ -52,7 +52,12 @@
   --color-wood-edge: #6a4e38;
   --color-board: #241a12;
   --color-nut: #efe9de;
-  --color-string: #b9b4ac;
+  --color-string: #d6d2ca;
+  /* Chord diagrams: a board surface, its frets, and the red that marks a
+     string you are not meant to play. */
+  --color-board-face: #2f2b28;
+  --color-fret: #4a443f;
+  --color-muted-string: #e0473c;
 
   --font-sans: var(--font-space-grotesk), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;

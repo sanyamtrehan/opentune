@@ -29,6 +29,12 @@ const NUT_Y = 44;
 const FRET_GAP = 46;
 const FRET_COUNT = 4;
 
+/** The board extends past the outer strings, as a real fretboard does. */
+const BOARD_PAD = 16;
+const BOARD_X = STRING_X[0] - BOARD_PAD;
+const BOARD_WIDTH = STRING_X[5] - STRING_X[0] + BOARD_PAD * 2;
+const BOARD_HEIGHT = FRET_COUNT * FRET_GAP;
+
 /** Open-string marker. Large enough to hold a note name inside it. */
 const OPEN_RADIUS = 12;
 
@@ -82,7 +88,7 @@ export function ChordDiagram({ shape, noteNames }: ChordDiagramProps) {
         const x = STRING_X[index];
         if (fret === "muted") {
           return (
-            <g key={index} stroke="var(--color-ink-faint)" strokeWidth="2.4" strokeLinecap="round">
+            <g key={index} stroke="var(--color-muted-string)" strokeWidth="2.6" strokeLinecap="round">
               <line x1={x - 6} y1={20} x2={x + 6} y2={32} />
               <line x1={x + 6} y1={20} x2={x - 6} y2={32} />
             </g>
@@ -118,17 +124,35 @@ export function ChordDiagram({ shape, noteNames }: ChordDiagramProps) {
         return null;
       })}
 
-      {/* Nut: thick, because these are open shapes and it is the reference. */}
-      <rect x={STRING_X[0]} y={NUT_Y - 5} width={STRING_X[5] - STRING_X[0]} height="6" rx="2" fill="var(--color-nut)" />
+      {/* The board itself. Without a surface the diagram is lines floating
+          on the page; with one it reads as a piece of a fretboard. */}
+      <rect
+        x={BOARD_X}
+        y={NUT_Y}
+        width={BOARD_WIDTH}
+        height={BOARD_HEIGHT}
+        rx="7"
+        fill="var(--color-board-face)"
+      />
+
+      {/* Nut, sitting on top of the board and spanning its full width. */}
+      <rect
+        x={BOARD_X}
+        y={NUT_Y - 7}
+        width={BOARD_WIDTH}
+        height="9"
+        rx="3"
+        fill="var(--color-nut)"
+      />
 
       {Array.from({ length: FRET_COUNT }, (_, i) => (
         <line
           key={i}
-          x1={STRING_X[0]}
+          x1={BOARD_X}
           y1={NUT_Y + (i + 1) * FRET_GAP}
-          x2={STRING_X[5]}
+          x2={BOARD_X + BOARD_WIDTH}
           y2={NUT_Y + (i + 1) * FRET_GAP}
-          stroke="var(--color-edge-strong)"
+          stroke="var(--color-fret)"
           strokeWidth="2"
         />
       ))}
@@ -156,12 +180,31 @@ export function ChordDiagram({ shape, noteNames }: ChordDiagramProps) {
           x1={x}
           y1={NUT_Y}
           x2={x}
-          y2={NUT_Y + FRET_COUNT * FRET_GAP}
-          stroke="#6b6660"
+          y2={NUT_Y + BOARD_HEIGHT}
+          stroke="var(--color-string)"
           // Wound strings are visibly thicker; low E on the left.
-          strokeWidth={2.2 - index * 0.22}
+          strokeWidth={3.4 - index * 0.32}
+          strokeLinecap="round"
         />
       ))}
+
+      {/* A muted string is marked down its whole length, not just with a
+          cross above the nut — at a glance the red line is what tells you
+          not to play it. */}
+      {shape.frets.map((fret, index) =>
+        fret === "muted" ? (
+          <line
+            key={index}
+            x1={STRING_X[index]}
+            y1={NUT_Y}
+            x2={STRING_X[index]}
+            y2={NUT_Y + BOARD_HEIGHT}
+            stroke="var(--color-muted-string)"
+            strokeWidth={3.4 - index * 0.32}
+            strokeLinecap="round"
+          />
+        ) : null,
+      )}
 
       {shape.frets.map((fret, index) => {
         if (fret === "muted" || fret === 0) return null;
