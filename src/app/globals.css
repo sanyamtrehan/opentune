@@ -58,8 +58,13 @@
    * being mistaken for either.
    */
   --color-included: #ff8a5c;
-  --color-included-bg: #2f1a12;
-  --color-included-edge: #6d3420;
+  /*
+   * No filled background. A tinted panel behind any hue turns to mud on a
+   * dark blue ground — that, rather than the colour, was what looked wrong
+   * about every version of this. The mark is the text and a rim of the same
+   * colour, over the same panel as every other chip.
+   */
+  --color-included-edge: #8c4a34;
 
   --color-tuned: #3fbf7f;
   --color-tuned-bg: #10291d;

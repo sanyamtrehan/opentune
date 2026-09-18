@@ -70,7 +70,7 @@ export function ScaleRow({ tonic, quality, spelling, chord }: ScaleRowProps) {
             }
             className={`flex flex-1 flex-col items-center gap-0.5 rounded-[10px] border px-2 py-1.5 min-[900px]:gap-1 min-[900px]:px-4 min-[900px]:py-2.5 ${
               isChordTone
-                ? "border-included-edge bg-included-bg"
+                ? "border-included-edge bg-panel"
                 : "border-edge bg-panel"
             }`}
           >
@@ -82,8 +82,8 @@ export function ScaleRow({ tonic, quality, spelling, chord }: ScaleRowProps) {
               {entry.numeral}
             </span>
             <span
-              className={`text-[13px] font-medium min-[900px]:text-[16px] ${
-                isChordTone ? "text-included" : "text-ink-muted"
+              className={`text-[13px] min-[900px]:text-[16px] ${
+                isChordTone ? "font-semibold text-included" : "font-medium text-ink-muted"
               }`}
             >
               {/* The symbol follows the spelling choice too, so the row does
