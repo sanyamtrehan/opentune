@@ -26,8 +26,8 @@ const NUT_Y = 44;
 const FRET_GAP = 46;
 const FRET_COUNT = 4;
 
-/** Space under the diagram for open-string note names, always reserved. */
-const LABEL_ROW = 34;
+/** Open-string marker. Large enough to hold a note name inside it. */
+const OPEN_RADIUS = 12;
 
 export const FINGER_NAMES: Record<Exclude<Finger, null>, string> = {
   1: "Index",
@@ -46,22 +46,18 @@ export const FINGER_COLOURS: Record<Exclude<Finger, null>, string> = {
 export interface ChordDiagramProps {
   shape: ChordShape;
   /**
-   * Note name per string, low first, for pro mode. Fretted strings show
-   * theirs inside the dot; open strings have no dot, so theirs goes under
-   * the diagram. Every sounding string is named exactly once.
+   * Note name per string, low first, for pro mode. Each name goes inside the
+   * marker for that string — the dot if it is fretted, the ring above the
+   * nut if it is open.
    */
   noteNames?: (string | null)[];
 }
 
 export function ChordDiagram({ shape, noteNames }: ChordDiagramProps) {
-  /*
-   * The viewBox always reserves room for the open-string labels, even when
-   * they are not drawn. Growing it in pro mode shrank the whole diagram to
-   * fit the same box, so turning Pro on nudged the chord you were reading —
-   * the shift this layout exists to avoid.
-   */
-  const height = VIEW_HEIGHT + LABEL_ROW;
-  const showOpenLabels = noteNames !== undefined;
+  // Fixed height: the open-string names sit inside their own markers now, so
+  // nothing about the geometry changes between modes and the diagram cannot
+  // shift under someone reading it.
+  const height = VIEW_HEIGHT;
 
   return (
     <svg
@@ -90,16 +86,30 @@ export function ChordDiagram({ shape, noteNames }: ChordDiagramProps) {
           );
         }
         if (fret === 0) {
+          const name = noteNames?.[index];
           return (
-            <circle
-              key={index}
-              cx={x}
-              cy={26}
-              r="6.5"
-              fill="none"
-              stroke="var(--color-ink-muted)"
-              strokeWidth="2"
-            />
+            <g key={index}>
+              <circle
+                cx={x}
+                cy={26}
+                r={OPEN_RADIUS}
+                fill="none"
+                stroke="var(--color-ink-muted)"
+                strokeWidth="2"
+              />
+              {name && (
+                <text
+                  x={x}
+                  y={31}
+                  textAnchor="middle"
+                  fontFamily="var(--font-mono)"
+                  fontSize={name.length > 1 ? 11 : 13}
+                  fill="var(--color-ink)"
+                >
+                  {name}
+                </text>
+              )}
+            </g>
           );
         }
         return null;
@@ -156,23 +166,6 @@ export function ChordDiagram({ shape, noteNames }: ChordDiagramProps) {
         );
       })}
 
-      {/* Open strings have no dot to write in, so they are named underneath. */}
-      {showOpenLabels &&
-        shape.frets.map((fret, index) =>
-          fret === 0 && noteNames?.[index] ? (
-            <text
-              key={index}
-              x={STRING_X[index]}
-              y={NUT_Y + FRET_COUNT * FRET_GAP + 26}
-              textAnchor="middle"
-              fontFamily="var(--font-mono)"
-              fontSize="15"
-              fill="var(--color-ink-muted)"
-            >
-              {noteNames[index]}
-            </text>
-          ) : null,
-        )}
     </svg>
   );
 }

@@ -12,7 +12,6 @@
 import { useState } from "react";
 
 import { buildChord, rootFromPitchClass, rootName } from "@/core/music/chords.ts";
-import type { ChordQuality } from "@/core/music/chords.ts";
 import { analyseShape } from "@/core/chords/analysis.ts";
 import { findShape } from "@/core/chords/shapes.ts";
 import { findPreset } from "@/core/tunings/presets.ts";
@@ -21,6 +20,7 @@ import { resolveShape } from "@/core/tunings/resolve.ts";
 import { ChordDiagram } from "./ChordDiagram";
 import { Header } from "./Header";
 import { InfoPane } from "./InfoPane";
+import { ScaleRow } from "./ScaleRow";
 
 /** Shapes are standard-tuning only in this draft, so the analysis is too. */
 const STANDARD = resolveShape(findPreset("standard")!).strings;
@@ -30,14 +30,15 @@ const ROOTS = Array.from({ length: 12 }, (_, pitchClass) => ({
   name: rootName(rootFromPitchClass(pitchClass)),
 }));
 
-const QUALITIES: ReadonlyArray<{ value: ChordQuality; label: string }> = [
+/** The toggle offers keys, so major and minor only — never diminished. */
+const QUALITIES: ReadonlyArray<{ value: "major" | "minor"; label: string }> = [
   { value: "major", label: "Major" },
   { value: "minor", label: "Minor" },
 ];
 
 export function ChordBrowser() {
   const [rootPitchClass, setRootPitchClass] = useState(0);
-  const [quality, setQuality] = useState<ChordQuality>("major");
+  const [quality, setQuality] = useState<"major" | "minor">("major");
   const [pro, setPro] = useState(false);
 
   const chord = buildChord(rootFromPitchClass(rootPitchClass), quality);
@@ -124,6 +125,12 @@ export function ChordBrowser() {
         </div>
       </div>
 
+      <ScaleRow
+        tonic={rootFromPitchClass(rootPitchClass)}
+        quality={quality}
+        selected={{ rootPitchClass, quality }}
+      />
+
       {/*
         * Two columns, with the right one always present. Genius does this
         * with its annotations: reserving the space means turning Pro on
@@ -133,7 +140,7 @@ export function ChordBrowser() {
         * rendered, for the same reason.
         */}
       <main className="mx-auto grid w-full max-w-[920px] min-h-0 flex-1 grid-cols-1 items-start gap-5 overflow-y-auto px-[clamp(16px,4vw,28px)] pb-[max(14px,env(safe-area-inset-bottom))] min-[900px]:grid-cols-[minmax(0,1fr)_320px]">
-        <section className="flex flex-col items-center gap-4">
+        <section className="flex flex-col items-center justify-center gap-4 min-[900px]:min-h-[19rem]">
           <h1 className="flex-none text-[28px] leading-none font-bold tracking-tight">
             {chord.symbol}
           </h1>

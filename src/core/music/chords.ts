@@ -14,7 +14,12 @@
 import { LETTERS, letterSemitones, midiOf, spellAs } from "./notes.ts";
 import type { Letter, Note } from "./types.ts";
 
-export type ChordQuality = "major" | "minor";
+/**
+ * Diminished is here for diatonic harmony rather than for the chord browser:
+ * the seventh chord of any major key is diminished, and a scale that skipped
+ * it would be a lie. Nothing offers it as a choice yet.
+ */
+export type ChordQuality = "major" | "minor" | "diminished";
 
 /**
  * Semitones above the root for each degree, and how far to step the letter.
@@ -34,6 +39,11 @@ const DEGREES: Record<ChordQuality, ReadonlyArray<{ semitones: number; letterSte
     { semitones: 3, letterStep: 2, degree: "♭3" },
     { semitones: 7, letterStep: 4, degree: "5" },
   ],
+  diminished: [
+    { semitones: 0, letterStep: 0, degree: "1" },
+    { semitones: 3, letterStep: 2, degree: "♭3" },
+    { semitones: 6, letterStep: 4, degree: "♭5" },
+  ],
 };
 
 export interface ChordTone {
@@ -52,7 +62,7 @@ export interface Chord {
 }
 
 /** How the quality is written after the root. */
-const SUFFIX: Record<ChordQuality, string> = { major: "", minor: "m" };
+const SUFFIX: Record<ChordQuality, string> = { major: "", minor: "m", diminished: "°" };
 
 function accidentalText(note: Note): string {
   return note.accidental === 1
