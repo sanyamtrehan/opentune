@@ -18,10 +18,13 @@
 
 import type { ChordShape, Finger } from "@/core/chords/shapes.ts";
 
-const VIEW_WIDTH = 220;
+const VIEW_WIDTH = 248;
 const VIEW_HEIGHT = 250;
 
-const STRING_X = [20, 56, 92, 128, 164, 200];
+/** Room on the left for the fret numbers. */
+const NUMBER_X = 14;
+
+const STRING_X = [48, 84, 120, 156, 192, 228];
 const NUT_Y = 44;
 const FRET_GAP = 46;
 const FRET_COUNT = 4;
@@ -128,6 +131,23 @@ export function ChordDiagram({ shape, noteNames }: ChordDiagramProps) {
           stroke="var(--color-edge-strong)"
           strokeWidth="2"
         />
+      ))}
+
+      {/* Fret numbers. Every shape here starts at the nut, so they are
+          always 1 to 4 — but a barre shape further up the neck will need
+          them to say which frets these are, and the space is reserved now. */}
+      {Array.from({ length: FRET_COUNT }, (_, i) => (
+        <text
+          key={i}
+          x={NUMBER_X}
+          y={NUT_Y + (i + 0.5) * FRET_GAP + 5}
+          textAnchor="middle"
+          fontFamily="var(--font-mono)"
+          fontSize="13"
+          fill="var(--color-ink-faint)"
+        >
+          {i + 1}
+        </text>
       ))}
 
       {STRING_X.map((x, index) => (

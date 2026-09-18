@@ -12,25 +12,24 @@
  * Deliberately not interactive. It is a reference, not a second set of
  * controls: two ways to change the same thing — the tabs above and the
  * chords here — would leave you unsure which one you had used, and what
- * tapping IV was supposed to mean. The chord currently shown is marked, so
- * the row tells you where you are in the key without offering to move you.
+ * tapping IV was supposed to mean.
+ *
+ * Nothing is highlighted either. The first chord is always the one the tabs
+ * already say you are on, so marking it repeats the answer and makes the row
+ * look like a control that has a selection.
  */
 
 import { diatonicChords } from "@/core/music/scales.ts";
 import { rootName } from "@/core/music/chords.ts";
-import type { ChordQuality } from "@/core/music/chords.ts";
-import { midiOf } from "@/core/music/notes.ts";
 import type { Note } from "@/core/music/types.ts";
 
 export interface ScaleRowProps {
   tonic: Note;
   /** Major or minor key — the toggle's two options. */
   quality: "major" | "minor";
-  /** The chord currently shown, so it can be marked. */
-  selected: { rootPitchClass: number; quality: ChordQuality };
 }
 
-export function ScaleRow({ tonic, quality, selected }: ScaleRowProps) {
+export function ScaleRow({ tonic, quality }: ScaleRowProps) {
   const chords = diatonicChords(tonic, quality);
 
   return (
@@ -39,36 +38,15 @@ export function ScaleRow({ tonic, quality, selected }: ScaleRowProps) {
       className="mx-auto w-full max-w-[920px] flex-none overflow-x-auto px-[clamp(16px,4vw,28px)] pb-3"
     >
       <div className="flex w-max min-w-full gap-1.5">
-        {chords.map((entry) => {
-          const pitchClass = ((midiOf(entry.chord.tones[0].note) % 12) + 12) % 12;
-          const isSelected =
-            pitchClass === selected.rootPitchClass &&
-            entry.chord.quality === selected.quality;
-          return (
-            <div
-              key={entry.degree}
-              aria-current={isSelected ? "true" : undefined}
-              className={`flex flex-1 flex-col items-center gap-0.5 rounded-[10px] border px-2 py-1.5 ${
-                isSelected ? "border-accent-edge bg-accent-bg" : "border-edge bg-panel"
-              }`}
-            >
-              <span
-                className={`font-mono text-[11px] ${
-                  isSelected ? "text-accent" : "text-ink-faint"
-                }`}
-              >
-                {entry.numeral}
-              </span>
-              <span
-                className={`text-[13px] font-medium ${
-                  isSelected ? "text-accent" : "text-ink"
-                }`}
-              >
-                {entry.chord.symbol}
-              </span>
-            </div>
-          );
-        })}
+        {chords.map((entry) => (
+          <div
+            key={entry.degree}
+            className="flex flex-1 flex-col items-center gap-0.5 rounded-[10px] border border-edge bg-panel px-2 py-1.5"
+          >
+            <span className="font-mono text-[11px] text-ink-faint">{entry.numeral}</span>
+            <span className="text-[13px] font-medium text-ink">{entry.chord.symbol}</span>
+          </div>
+        ))}
       </div>
     </section>
   );
