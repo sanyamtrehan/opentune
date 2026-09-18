@@ -11,7 +11,7 @@
  * as 0-11 pitch classes. See AGENTS.md.
  */
 
-import { LETTERS, letterSemitones, midiOf, spellAs } from "./notes.ts";
+import { LETTERS, letterSemitones, midiOf, noteFromMidi, spellAs } from "./notes.ts";
 import type { Letter, Note } from "./types.ts";
 
 /**
@@ -158,4 +158,27 @@ export function rootFromPitchClass(
   const [letter, accidental] = ROOT_NAMES[spelling][((pitchClass % 12) + 12) % 12];
   const midi = (octave + 1) * 12 + letterSemitones(letter) + accidental;
   return spellAs(midi, letter);
+}
+
+/**
+ * Re-spell a note for display under the chosen preference.
+ *
+ * This is presentation, not theory. A chord's own spelling is fixed by what
+ * the chord is — D major's third is a kind of F — but someone reading the
+ * diagram may want every accidental shown the same way, and both names
+ * refer to the same sound. Callers that print a note use this; nothing that
+ * reasons about harmony does.
+ *
+ * It also quietly disposes of the double accidentals: D♯ major's F× is a G
+ * by pitch, so in sharp display it simply reads G.
+ */
+export function respell(note: Note, spelling: RootSpelling): Note {
+  if (spelling === "conventional") return note;
+  return noteFromMidi(midiOf(note), spelling);
+}
+
+/** Whether display spelling would show this note under a different name. */
+export function isRespelled(note: Note, spelling: RootSpelling): boolean {
+  const shown = respell(note, spelling);
+  return shown.letter !== note.letter || shown.accidental !== note.accidental;
 }

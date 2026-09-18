@@ -11,7 +11,7 @@
 
 import { useState } from "react";
 
-import { buildChord, rootFromPitchClass, rootName } from "@/core/music/chords.ts";
+import { buildChord, respell, rootFromPitchClass, rootName } from "@/core/music/chords.ts";
 import type { RootSpelling } from "@/core/music/chords.ts";
 import { analyseShape } from "@/core/chords/analysis.ts";
 import { findShape } from "@/core/chords/shapes.ts";
@@ -140,7 +140,7 @@ export function ChordBrowser() {
         </div>
         <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
           <span className="truncate font-mono text-[13px] text-ink-muted">
-            {chord.tones.map((tone) => rootName(tone.note)).join(" ")}
+            {chord.tones.map((tone) => rootName(respell(tone.note, spelling))).join(" ")}
           </span>
           <button
             type="button"
@@ -165,7 +165,7 @@ export function ChordBrowser() {
         </div>
       </div>
 
-      <ScaleRow tonic={root} quality={quality} />
+      <ScaleRow tonic={root} quality={quality} spelling={spelling} />
 
       {/*
         * Two columns, with the right one always present. Genius does this
@@ -200,7 +200,9 @@ export function ChordBrowser() {
                   noteNames={
                     pro && analysis
                       ? analysis.strings.map((string) =>
-                          string.note ? rootName(string.note) : null,
+                          string.note
+                            ? rootName(respell(string.note, spelling))
+                            : null,
                         )
                       : undefined
                   }
@@ -222,7 +224,7 @@ export function ChordBrowser() {
           )}
         </section>
 
-        <InfoPane chord={chord} analysis={analysis} pro={pro} />
+        <InfoPane chord={chord} analysis={analysis} pro={pro} spelling={spelling} />
       </main>
     </div>
   );

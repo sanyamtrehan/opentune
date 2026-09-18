@@ -1,7 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { buildChord, rootFromPitchClass, rootName, toneAt } from "./chords.ts";
+import {
+  buildChord,
+  isRespelled,
+  respell,
+  rootFromPitchClass,
+  rootName,
+  toneAt,
+} from "./chords.ts";
 import { formatNote, midiOf, parseNote } from "./notes.ts";
 
 /** "C E G" — the chord's notes without octaves, for readable assertions. */
@@ -161,4 +168,47 @@ test("the spelling choice carries through to the whole key", () => {
   const sharp = buildChord(rootFromPitchClass(1, 4, "sharp"), "major");
   assert.equal(sharp.symbol, "C♯");
   assert.deepEqual(sharp.tones.map((tone) => rootName(tone.note)), ["C♯", "E♯", "G♯"]);
+});
+
+test("display spelling renames notes without changing them", () => {
+  const fSharp = parseNote("F#4");
+  assert.equal(rootName(respell(fSharp, "conventional")), "F♯");
+  assert.equal(rootName(respell(fSharp, "sharp")), "F♯");
+  assert.equal(rootName(respell(fSharp, "flat")), "G♭");
+  // Same sound throughout: this is presentation, not transposition.
+  for (const spelling of ["conventional", "sharp", "flat"] as const) {
+    assert.equal(midiOf(respell(fSharp, spelling)), midiOf(fSharp));
+  }
+});
+
+test("naturals are never re-spelled", () => {
+  for (const text of ["C4", "D4", "E4", "F4", "G4", "A4", "B4"]) {
+    for (const spelling of ["sharp", "flat"] as const) {
+      assert.equal(rootName(respell(parseNote(text), spelling)), text.slice(0, -1));
+      assert.equal(isRespelled(parseNote(text), spelling), false);
+    }
+  }
+});
+
+test("display spelling disposes of double accidentals", () => {
+  // D♯ major's third is F double-sharp, which is a G by pitch. Asking for
+  // sharps throughout shows the G, which is the readable half of the point.
+  const chord = buildChord(rootFromPitchClass(3, 4, "sharp"), "major");
+  const shown = chord.tones.map((tone) => rootName(respell(tone.note, "sharp")));
+  assert.deepEqual(shown, ["D♯", "G", "A♯"]);
+  assert.ok(isRespelled(chord.tones[1].note, "sharp"), "the third is renamed");
+  assert.ok(!isRespelled(chord.tones[0].note, "sharp"), "the root is not");
+});
+
+test("the thing the setting is for: D major's third", () => {
+  const chord = buildChord(parseNote("D4"), "major");
+  assert.deepEqual(
+    chord.tones.map((tone) => rootName(respell(tone.note, "flat"))),
+    ["D", "G♭", "A"],
+  );
+  // And the app can tell that it has done so, in order to say so.
+  assert.deepEqual(
+    chord.tones.map((tone) => isRespelled(tone.note, "flat")),
+    [false, true, false],
+  );
 });

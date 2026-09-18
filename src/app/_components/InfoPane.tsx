@@ -14,8 +14,8 @@
  * every line says the thing rather than naming it.
  */
 
-import { rootName } from "@/core/music/chords.ts";
-import type { Chord } from "@/core/music/chords.ts";
+import { isRespelled, respell, rootName } from "@/core/music/chords.ts";
+import type { Chord, RootSpelling } from "@/core/music/chords.ts";
 import type { ShapeAnalysis } from "@/core/chords/analysis.ts";
 
 const COUNT_WORDS = ["never", "once", "twice", "three times", "four times", "five times", "six times"];
@@ -25,10 +25,24 @@ export interface InfoPaneProps {
   /** Null when this draft has no shape for the chord. */
   analysis: ShapeAnalysis | null;
   pro: boolean;
+  spelling: RootSpelling;
 }
 
-export function InfoPane({ chord, analysis, pro }: InfoPaneProps) {
-  const spelled = chord.tones.map((tone) => rootName(tone.note));
+export function InfoPane({ chord, analysis, pro, spelling }: InfoPaneProps) {
+  /** A note as the reader has asked to see it. */
+  const show = (note: Parameters<typeof rootName>[0]) =>
+    rootName(respell(note, spelling));
+
+  const spelled = chord.tones.map((tone) => show(tone.note));
+
+  /*
+   * Chord tones the display preference has renamed. Worth saying out loud:
+   * in flat spelling D major reads D G♭ A, and G♭ is not really the third
+   * of anything — F♯ is. Showing the preferred name and naming the real one
+   * gives the reader what they asked for without teaching them something
+   * false.
+   */
+  const renamed = chord.tones.filter((tone) => isRespelled(tone.note, spelling));
   const doubled = analysis?.degrees.filter((entry) => entry.count > 1) ?? [];
   const single = analysis?.degrees.filter((entry) => entry.count === 1) ?? [];
 
@@ -52,7 +66,7 @@ export function InfoPane({ chord, analysis, pro }: InfoPaneProps) {
             ) : (
               analysis.strings.map((string, index) => (
                 <span key={index} className={string.note ? "" : "text-ink-faint"}>
-                  {string.note ? rootName(string.note) : "×"}
+                  {string.note ? show(string.note) : "×"}
                   {pro && string.degree && (
                     <span className="text-accent">({string.degree})</span>
                   )}
@@ -104,7 +118,7 @@ export function InfoPane({ chord, analysis, pro }: InfoPaneProps) {
                   <span key={entry.tone.degree}>
                     {index > 0 ? ", and the " : "The "}
                     <strong className="font-medium">{degreeWord(entry.tone.degree)}</strong>{" "}
-                    ({rootName(entry.tone.note)}) sounds{" "}
+                    ({show(entry.tone.note)}) sounds{" "}
                     {COUNT_WORDS[entry.count] ?? `${entry.count} times`}
                   </span>
                 ))}
@@ -136,13 +150,30 @@ export function InfoPane({ chord, analysis, pro }: InfoPaneProps) {
           </div>
         )}
 
+        {renamed.length > 0 && (
+          <div>
+            <dt className="text-ink-muted">A note on the spelling</dt>
+            <dd className="mt-0.5 text-ink">
+              {renamed.map((tone, index) => (
+                <span key={tone.degree}>
+                  {index > 0 && ", and "}
+                  {show(tone.note)} is usually written {rootName(tone.note)} here
+                </span>
+              ))}
+              . Same {renamed.length > 1 ? "sounds" : "sound"} either way — the{" "}
+              {renamed.length > 1 ? "names follow" : "name follows"} your
+              spelling choice rather than the chord.
+            </dd>
+          </div>
+        )}
+
         {analysis?.inverted && (
           <div>
             <dt className="text-ink-muted">Lowest note</dt>
             <dd className="mt-0.5 text-ink">
-              The deepest string is {rootName(analysis.bass.note)}, the{" "}
+              The deepest string is {show(analysis.bass.note)}, the{" "}
               {degreeWord(analysis.bass.degree ?? "")} rather than the root. That
-              is written {chord.symbol}/{rootName(analysis.bass.note)}.
+              is written {chord.symbol}/{show(analysis.bass.note)}.
             </dd>
           </div>
         )}

@@ -20,16 +20,18 @@
  */
 
 import { diatonicChords } from "@/core/music/scales.ts";
-import { rootName } from "@/core/music/chords.ts";
+import type { RootSpelling } from "@/core/music/chords.ts";
+import { respell, rootName } from "@/core/music/chords.ts";
 import type { Note } from "@/core/music/types.ts";
 
 export interface ScaleRowProps {
   tonic: Note;
   /** Major or minor key — the toggle's two options. */
   quality: "major" | "minor";
+  spelling: RootSpelling;
 }
 
-export function ScaleRow({ tonic, quality }: ScaleRowProps) {
+export function ScaleRow({ tonic, quality, spelling }: ScaleRowProps) {
   const chords = diatonicChords(tonic, quality);
 
   return (
@@ -47,7 +49,14 @@ export function ScaleRow({ tonic, quality }: ScaleRowProps) {
               {entry.numeral}
             </span>
             <span className="text-[13px] font-medium text-ink min-[900px]:text-[16px]">
-              {entry.chord.symbol}
+              {/* The symbol follows the spelling choice too, so the row does
+                  not disagree with the chord it describes. */}
+              {rootName(respell(entry.chord.tones[0].note, spelling))}
+              {entry.chord.quality === "minor"
+                ? "m"
+                : entry.chord.quality === "diminished"
+                  ? "°"
+                  : ""}
             </span>
           </div>
         ))}
