@@ -59,13 +59,24 @@ test("every generated shape really is the chord it claims to be", () => {
   }
 });
 
-test("the root is in the bass of every barre shape", () => {
-  // What makes a barre chord sound like the chord rather than an inversion.
+test("the root is in the bass of every full shape", () => {
+  /*
+   * What makes a barre chord sound like the chord rather than an inversion.
+   * The four-string windows are exempt on purpose — dropping the low strings
+   * is exactly how you get a C/G — but their bass still has to be a note of
+   * the chord, not a stray.
+   */
   for (let pitchClass = 0; pitchClass < 12; pitchClass += 1) {
     for (const quality of ["major", "minor"] as const) {
       const chord = buildChord(rootFromPitchClass(pitchClass), quality);
       for (const shape of positionsFor(pitchClass, quality, standard)) {
         const analysis = analyseShape(shape, chord, standard);
+        assert.notEqual(
+          analysis.bass.degree,
+          null,
+          `${shape.name} of ${chord.symbol} is rooted on a note outside the chord`,
+        );
+        if (shape.frets.filter((fret) => fret !== "muted").length < 5) continue;
         assert.equal(
           analysis.bass.degree,
           "1",
@@ -125,8 +136,23 @@ test("positions run up the neck, not in the order they were defined", () => {
   const positions = positionsFor(0, "major", standard);
   const frets = positions.map((shape) => lowestFret(shape.frets));
   assert.deepEqual([...frets].sort((a, b) => a - b), frets, frets.join());
-  // C major: open, then the A shape at 3, then the E shape at 8.
-  assert.deepEqual(positions.map((shape) => lowestFret(shape.frets)), [1, 3, 8]);
+  // C major: the open shape, the A shape and its two windows at 3, the E
+  // shape and its three windows at 8, then the D shape at 10.
+  assert.deepEqual(
+    positions.map((shape) => lowestFret(shape.frets)),
+    [1, 3, 3, 3, 8, 8, 8, 8, 10],
+  );
+  assert.deepEqual(positions.map((shape) => shape.name), [
+    "Open",
+    "A shape, 3rd fret",
+    "Middle four, 3rd fret",
+    "Top four, 3rd fret",
+    "E shape, 8th fret",
+    "Low four, 8th fret",
+    "Middle four, 8th fret",
+    "Top four, 8th fret",
+    "D shape, 10th fret",
+  ]);
 });
 
 test("the diagram starts at the nut only when the shape does", () => {

@@ -8,9 +8,11 @@
  * get wrong.
  */
 
+import { buildChord, rootFromPitchClass } from "../music/chords.ts";
 import type { ChordQuality } from "../music/chords.ts";
+import { midiOf } from "../music/notes.ts";
 import type { Note } from "../music/types.ts";
-import { MOVABLE_PATTERNS, shapeFromPattern } from "./movable.ts";
+import { MOVABLE_PATTERNS, shapesFromPattern } from "./movable.ts";
 import { OPEN_SHAPES } from "./shapes.ts";
 import type { ChordShape, FretPosition } from "./shapes.ts";
 
@@ -34,11 +36,17 @@ export function baseFret(shape: ChordShape): number {
   return lowest <= 1 ? 1 : lowest;
 }
 
+/** How many strings a shape actually sounds. */
+const soundingCount = (shape: ChordShape) =>
+  shape.frets.filter((fret) => fret !== "muted").length;
+
 /**
  * All the positions for a chord, nearest the nut first.
  *
  * Open shapes come before barres at the same fret, because if a chord has an
- * open voicing that is the one to learn.
+ * open voicing that is the one to learn. Where a full shape and one of its
+ * partials start at the same fret the full one leads, for the same reason:
+ * the partials are what you reach for once you know it.
  */
 export function positionsFor(
   rootPitchClass: number,
@@ -51,15 +59,40 @@ export function positionsFor(
     (shape) => shape.rootPitchClass === pitchClass && shape.quality === quality,
   );
 
+  /*
+   * A voicing that has dropped one of the three notes is a different chord,
+   * whatever the diagram is filed under: the top four of an A shape major is
+   * the chord, the bottom four is a root and a fifth — a power chord. So the
+   * generated partials are filtered against the chord itself rather than
+   * trusted because their parent was right.
+   */
+  const wanted = new Set(
+    buildChord(rootFromPitchClass(pitchClass), quality).tones.map((tone) =>
+      ((midiOf(tone.note) % 12) + 12) % 12,
+    ),
+  );
+  const complete = (shape: ChordShape) => {
+    const sounds = new Set(
+      shape.frets.flatMap((fret, index) =>
+        fret === "muted" ? [] : [((midiOf(strings[index]) + fret) % 12 + 12) % 12],
+      ),
+    );
+    return [...wanted].every((pitch) => sounds.has(pitch));
+  };
+
   const movable = MOVABLE_PATTERNS.filter(
     (pattern) => pattern.quality === quality,
   )
-    .map((pattern) => shapeFromPattern(pattern, pitchClass, strings))
-    .filter((shape): shape is ChordShape => shape !== null);
+    .flatMap((pattern) => shapesFromPattern(pattern, pitchClass, strings))
+    .filter(complete);
 
   return [...open, ...movable].sort((a, b) => {
     const byFret = lowestFret(a.frets) - lowestFret(b.frets);
     if (byFret !== 0) return byFret;
+    // A full shape and its own four-string window start at the same fret;
+    // the full one leads.
+    const byWidth = soundingCount(b) - soundingCount(a);
+    if (byWidth !== 0) return byWidth;
     // An open voicing and a barre can start at the same fret; prefer the open.
     return (a.barre ? 1 : 0) - (b.barre ? 1 : 0);
   });
