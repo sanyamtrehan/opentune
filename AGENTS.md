@@ -27,17 +27,25 @@ on the web, and works offline.
 **v1 (current):** 6-string guitar only. Two tuning modes, preset tunings plus
 user-defined tunings. No accounts, no backend, no database. Fully client-side.
 
-**Since added to v1:** a chord library — eleven qualities in every key (5,
-major, minor, 7, maj7, m7, sus2, sus4, add9, 9, 7♯9), with their positions on
-the neck, the notes each shape actually sounds, and the diatonic harmony of
-the key. This was in the deferred "bounded" bucket and was pulled forward
-deliberately. It is the payoff for the spelled-note decision below: none of
-it is expressible with 0-11 pitch classes, and C7♯9 — whose raised ninth is a
-D♯ sounding against the E below it — is the case that proves it.
+**Since added to v1:** a chord library — fifty qualities in every key, with a
+named bass note for slash chords, their positions on the neck, the notes each
+shape actually sounds, and the diatonic harmony of the key. This was in the
+deferred "bounded" bucket and was pulled forward deliberately. It is the
+payoff for the spelled-note decision below: none of it is expressible with
+0-11 pitch classes, and C7♯9 — whose raised ninth is a D♯ sounding against
+the E below it — is the case that proves it.
+
+**Shapes are found, not typed.** Fifty qualities in twelve keys is six
+hundred chords, and `core/chords/voicings.ts` searches the neck for each
+rather than storing a list. The hand-written shapes in `shapes.ts` and
+`movable.ts` stay in front of it, because a search does not know that x32010
+is *the* C major. Anything added to the vocabulary gets shapes for free; what
+it needs instead is a test, and `voicings.test.ts` checks every claim on
+every chord the generator can produce.
 
 **Still explicitly deferred:** 7/8-string, bass, ukulele, other instruments;
-altered, diminished and 11th/13th chords; pentatonics and scale shapes on the
-neck; song-to-tuning lookup; play-along / playthrough.
+pentatonics and scale shapes on the neck; song-to-tuning lookup; play-along /
+playthrough.
 
 ## The two tuning modes
 

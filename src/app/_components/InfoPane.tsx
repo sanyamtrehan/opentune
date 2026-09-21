@@ -16,6 +16,8 @@
 
 import { isRespelled, respell, rootName } from "@/core/music/chords.ts";
 import type { Chord, ChordQuality, RootSpelling } from "@/core/music/chords.ts";
+import { midiOf } from "@/core/music/notes.ts";
+import type { Note } from "@/core/music/types.ts";
 import type { ShapeAnalysis } from "@/core/chords/analysis.ts";
 
 const COUNT_WORDS = ["never", "once", "twice", "three times", "four times", "five times", "six times"];
@@ -45,6 +47,14 @@ function explain(quality: ChordQuality, notes: string[], degrees: string[]): str
   return (
     `${capitalise(words.join(", "))} and ${last}, stacked on ${notes[0]}: ` +
     `${notes.join(", ")}.`
+  );
+}
+
+/** Whether a note is one the chord already sounds, by pitch rather than name. */
+function inChord(chord: Chord, note: Note): boolean {
+  const pitchClass = (value: number) => ((value % 12) + 12) % 12;
+  return chord.tones.some(
+    (tone) => pitchClass(midiOf(tone.note)) === pitchClass(midiOf(note)),
   );
 }
 
@@ -171,6 +181,21 @@ export function InfoPane({ chord, analysis, pro, spelling }: InfoPaneProps) {
         What you are holding
       </h2>
 
+      {/* Said before the theory, because it changes what the theory is
+          about: the notes below are the chord's, and the slash names one
+          more that has to sit under them. */}
+      {chord.bass && (
+        <p className="mb-3 text-paper-ink">
+          <strong className="font-medium">{chord.symbol}</strong> is{" "}
+          {rootName(respell(chord.root, spelling))}
+          {chord.quality === "major" ? " major" : ""} with{" "}
+          {show(chord.bass)} underneath.{" "}
+          {inChord(chord, chord.bass)
+            ? "The bass is a note the chord already has, so this is an inversion — the same chord, stood on a different foot."
+            : "The bass is not in the chord, so this is not an inversion: it is the chord with a foreign note put under it."}
+        </p>
+      )}
+
       <dl className="flex flex-col gap-3">
         <div>
           <dt className="text-paper-ink-muted">The notes</dt>
@@ -287,9 +312,22 @@ export function InfoPane({ chord, analysis, pro, spelling }: InfoPaneProps) {
           <div>
             <dt className="text-paper-ink-muted">Lowest note</dt>
             <dd className="mt-0.5 text-paper-ink">
-              The deepest string is {show(analysis.bass.note)}, the{" "}
-              {degreeWord(analysis.bass.degree ?? "")} rather than the root. That
-              is written {chord.symbol}/{show(analysis.bass.note)}.
+              {analysis.bass.degree !== null ? (
+                <>
+                  The deepest string is {show(analysis.bass.note)}, the{" "}
+                  {degreeWord(analysis.bass.degree)} rather than the root — an
+                  inversion. That is written{" "}
+                  {chord.bass ? chord.symbol : `${chord.symbol}/${show(analysis.bass.note)}`}.
+                </>
+              ) : (
+                <>
+                  The deepest string is {show(analysis.bass.note)}, which is not
+                  one of the chord{"\u2019"}s own notes at all. That is what
+                  separates {chord.symbol} from an inversion: nothing has been
+                  turned upside down, a note from outside has been put
+                  underneath.
+                </>
+              )}
             </dd>
           </div>
         )}

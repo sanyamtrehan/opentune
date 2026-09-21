@@ -12,7 +12,7 @@
 
 import { toneAt } from "../music/chords.ts";
 import type { Chord, ChordTone } from "../music/chords.ts";
-import { midiOf } from "../music/notes.ts";
+import { midiOf, noteFromMidi, spellAs } from "../music/notes.ts";
 import type { Note } from "../music/types.ts";
 import type { ChordShape, FretPosition } from "./shapes.ts";
 
@@ -62,17 +62,27 @@ export function analyseShape(
     }
     const midi = midiOf(strings[index]) + fret;
     const tone = toneAt(chord, midi);
-    return {
-      stringNumber,
-      fret,
-      // A note outside the chord still sounds, and still has to be named —
-      // fall back to the string's own spelling rather than hiding it.
-      note: tone?.note ?? null,
-      degree: tone?.degree ?? null,
-    };
+    if (tone) return { stringNumber, fret, note: tone.note, degree: tone.degree };
+
+    /*
+     * A note outside the chord still sounds and still has to be named. It
+     * used to be dropped, which was survivable while every shape was made
+     * only of chord tones and became a bug the moment slash chords
+     * arrived: the F under a C/F is not in C major, and showing that
+     * string as silent would be a lie about what the hand is holding.
+     *
+     * The bass of a slash chord gets the spelling the chord gives it;
+     * anything else falls back to a plain reading of the pitch.
+     */
+    const bass = chord.bass;
+    const named =
+      bass && ((midiOf(bass) % 12) + 12) % 12 === ((midi % 12) + 12) % 12
+        ? spellAs(midi, bass.letter)
+        : noteFromMidi(midi);
+    return { stringNumber, fret, note: named, degree: null };
   });
 
-  const sounding = analysed.filter((string) => string.note !== null);
+  const sounding = analysed.filter((string) => string.fret !== "muted");
 
   const degrees: DegreeCount[] = chord.tones.map((tone) => ({
     tone,

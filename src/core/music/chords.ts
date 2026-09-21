@@ -54,7 +54,18 @@ interface QualitySpec {
   suffix: string;
   /** Whether it belongs in the short list most players want. */
   common?: true;
+  /** Which group it sits in when the whole vocabulary is on screen. */
+  family: string;
 }
+
+/** Families in the order the full list shows them. */
+export const CHORD_FAMILIES = [
+  "Triads",
+  "Sixths",
+  "Sevenths",
+  "Ninths",
+  "Elevenths and thirteenths",
+] as const;
 
 /**
  * The whole vocabulary, written the way a chord chart writes it.
@@ -68,60 +79,60 @@ interface QualitySpec {
  * *have* and the wrong number to show someone looking for A minor.
  */
 const QUALITIES = {
-  major: { degrees: "1 3 5", suffix: "", common: true },
-  minor: { degrees: "1 ♭3 5", suffix: "m", common: true },
-  power: { degrees: "1 5", suffix: "5", common: true },
-  dominant7: { degrees: "1 3 5 ♭7", suffix: "7", common: true },
-  major7: { degrees: "1 3 5 7", suffix: "maj7", common: true },
-  minor7: { degrees: "1 ♭3 5 ♭7", suffix: "m7", common: true },
-  sus2: { degrees: "1 2 5", suffix: "sus2", common: true },
-  sus4: { degrees: "1 4 5", suffix: "sus4", common: true },
-  add9: { degrees: "1 3 5 9", suffix: "add9", common: true },
-  dominant9: { degrees: "1 3 5 ♭7 9", suffix: "9", common: true },
-  dominant7sharp9: { degrees: "1 3 5 ♭7 ♯9", suffix: "7♯9", common: true },
+  major: { degrees: "1 3 5", suffix: "", common: true , family: "Triads" },
+  minor: { degrees: "1 ♭3 5", suffix: "m", common: true , family: "Triads" },
+  power: { degrees: "1 5", suffix: "5", common: true , family: "Triads" },
+  dominant7: { degrees: "1 3 5 ♭7", suffix: "7", common: true , family: "Sevenths" },
+  major7: { degrees: "1 3 5 7", suffix: "maj7", common: true , family: "Sevenths" },
+  minor7: { degrees: "1 ♭3 5 ♭7", suffix: "m7", common: true , family: "Sevenths" },
+  sus2: { degrees: "1 2 5", suffix: "sus2", common: true , family: "Triads" },
+  sus4: { degrees: "1 4 5", suffix: "sus4", common: true , family: "Triads" },
+  add9: { degrees: "1 3 5 9", suffix: "add9", common: true , family: "Ninths" },
+  dominant9: { degrees: "1 3 5 ♭7 9", suffix: "9", common: true , family: "Ninths" },
+  dominant7sharp9: { degrees: "1 3 5 ♭7 ♯9", suffix: "7♯9", common: true , family: "Ninths" },
 
-  diminished: { degrees: "1 ♭3 ♭5", suffix: "dim", common: true },
-  diminished7: { degrees: "1 ♭3 ♭5 ♭♭7", suffix: "dim7", common: true },
-  augmented: { degrees: "1 3 ♯5", suffix: "aug", common: true },
-  sixth: { degrees: "1 3 5 6", suffix: "6", common: true },
-  minor6: { degrees: "1 ♭3 5 6", suffix: "m6", common: true },
-  dominant7sus4: { degrees: "1 4 5 ♭7", suffix: "7sus4", common: true },
-  major9: { degrees: "1 3 5 7 9", suffix: "maj9", common: true },
-  minor9: { degrees: "1 ♭3 5 ♭7 9", suffix: "m9", common: true },
-  minor7flat5: { degrees: "1 ♭3 ♭5 ♭7", suffix: "m7♭5", common: true },
+  diminished: { degrees: "1 ♭3 ♭5", suffix: "dim", common: true , family: "Triads" },
+  diminished7: { degrees: "1 ♭3 ♭5 ♭♭7", suffix: "dim7", common: true , family: "Sevenths" },
+  augmented: { degrees: "1 3 ♯5", suffix: "aug", common: true , family: "Triads" },
+  sixth: { degrees: "1 3 5 6", suffix: "6", common: true , family: "Sixths" },
+  minor6: { degrees: "1 ♭3 5 6", suffix: "m6", common: true , family: "Sixths" },
+  dominant7sus4: { degrees: "1 4 5 ♭7", suffix: "7sus4", common: true , family: "Sevenths" },
+  major9: { degrees: "1 3 5 7 9", suffix: "maj9", common: true , family: "Ninths" },
+  minor9: { degrees: "1 ♭3 5 ♭7 9", suffix: "m9", common: true , family: "Ninths" },
+  minor7flat5: { degrees: "1 ♭3 ♭5 ♭7", suffix: "m7♭5", common: true , family: "Sevenths" },
 
-  major11: { degrees: "1 3 5 7 9 11", suffix: "maj11" },
-  major13: { degrees: "1 3 5 7 9 13", suffix: "maj13" },
-  major9sharp11: { degrees: "1 3 5 7 9 ♯11", suffix: "maj9♯11" },
-  major13sharp11: { degrees: "1 3 5 7 9 ♯11 13", suffix: "maj13♯11" },
-  major7flat5: { degrees: "1 3 ♭5 7", suffix: "maj7♭5" },
-  major7sharp5: { degrees: "1 3 ♯5 7", suffix: "maj7♯5" },
-  majorflat5: { degrees: "1 3 ♭5", suffix: "(♭5)" },
-  six9: { degrees: "1 3 5 6 9", suffix: "6add9" },
-  sus2sus4: { degrees: "1 2 4 5", suffix: "sus2sus4" },
+  major11: { degrees: "1 3 5 7 9 11", suffix: "maj11" , family: "Elevenths and thirteenths" },
+  major13: { degrees: "1 3 5 7 9 13", suffix: "maj13" , family: "Elevenths and thirteenths" },
+  major9sharp11: { degrees: "1 3 5 7 9 ♯11", suffix: "maj9♯11" , family: "Elevenths and thirteenths" },
+  major13sharp11: { degrees: "1 3 5 7 9 ♯11 13", suffix: "maj13♯11" , family: "Elevenths and thirteenths" },
+  major7flat5: { degrees: "1 3 ♭5 7", suffix: "maj7♭5" , family: "Sevenths" },
+  major7sharp5: { degrees: "1 3 ♯5 7", suffix: "maj7♯5" , family: "Sevenths" },
+  majorflat5: { degrees: "1 3 ♭5", suffix: "(♭5)" , family: "Triads" },
+  six9: { degrees: "1 3 5 6 9", suffix: "6add9" , family: "Sixths" },
+  sus2sus4: { degrees: "1 2 4 5", suffix: "sus2sus4" , family: "Triads" },
 
-  minoradd9: { degrees: "1 ♭3 5 9", suffix: "madd9" },
-  minor6add9: { degrees: "1 ♭3 5 6 9", suffix: "m6add9" },
-  minor11: { degrees: "1 ♭3 5 ♭7 9 11", suffix: "m11" },
-  minor13: { degrees: "1 ♭3 5 ♭7 9 13", suffix: "m13" },
-  minormajor7: { degrees: "1 ♭3 5 7", suffix: "mmaj7" },
-  minormajor9: { degrees: "1 ♭3 5 7 9", suffix: "mmaj9" },
-  minor7sharp5: { degrees: "1 ♭3 ♯5 ♭7", suffix: "m7♯5" },
+  minoradd9: { degrees: "1 ♭3 5 9", suffix: "madd9" , family: "Ninths" },
+  minor6add9: { degrees: "1 ♭3 5 6 9", suffix: "m6add9" , family: "Sixths" },
+  minor11: { degrees: "1 ♭3 5 ♭7 9 11", suffix: "m11" , family: "Elevenths and thirteenths" },
+  minor13: { degrees: "1 ♭3 5 ♭7 9 13", suffix: "m13" , family: "Elevenths and thirteenths" },
+  minormajor7: { degrees: "1 ♭3 5 7", suffix: "mmaj7" , family: "Sevenths" },
+  minormajor9: { degrees: "1 ♭3 5 7 9", suffix: "mmaj9" , family: "Ninths" },
+  minor7sharp5: { degrees: "1 ♭3 ♯5 ♭7", suffix: "m7♯5" , family: "Sevenths" },
 
-  dominant11: { degrees: "1 3 5 ♭7 9 11", suffix: "11" },
-  dominant13: { degrees: "1 3 5 ♭7 9 13", suffix: "13" },
-  dominant7flat5: { degrees: "1 3 ♭5 ♭7", suffix: "7♭5" },
-  dominant7sharp5: { degrees: "1 3 ♯5 ♭7", suffix: "7♯5" },
-  dominant7flat9: { degrees: "1 3 5 ♭7 ♭9", suffix: "7♭9" },
-  dominant7flat5flat9: { degrees: "1 3 ♭5 ♭7 ♭9", suffix: "7(♭5,♭9)" },
-  dominant7flat5sharp9: { degrees: "1 3 ♭5 ♭7 ♯9", suffix: "7(♭5,♯9)" },
-  dominant7sharp5flat9: { degrees: "1 3 ♯5 ♭7 ♭9", suffix: "7(♯5,♭9)" },
-  dominant7sharp5sharp9: { degrees: "1 3 ♯5 ♭7 ♯9", suffix: "7(♯5,♯9)" },
-  dominant9flat5: { degrees: "1 3 ♭5 ♭7 9", suffix: "9♭5" },
-  dominant9sharp5: { degrees: "1 3 ♯5 ♭7 9", suffix: "9♯5" },
-  dominant13sharp11: { degrees: "1 3 5 ♭7 9 ♯11 13", suffix: "13♯11" },
-  dominant13flat9: { degrees: "1 3 5 ♭7 ♭9 13", suffix: "13♭9" },
-  dominant11flat9: { degrees: "1 3 5 ♭7 ♭9 11", suffix: "11♭9" },
+  dominant11: { degrees: "1 3 5 ♭7 9 11", suffix: "11" , family: "Elevenths and thirteenths" },
+  dominant13: { degrees: "1 3 5 ♭7 9 13", suffix: "13" , family: "Elevenths and thirteenths" },
+  dominant7flat5: { degrees: "1 3 ♭5 ♭7", suffix: "7♭5" , family: "Sevenths" },
+  dominant7sharp5: { degrees: "1 3 ♯5 ♭7", suffix: "7♯5" , family: "Sevenths" },
+  dominant7flat9: { degrees: "1 3 5 ♭7 ♭9", suffix: "7♭9" , family: "Ninths" },
+  dominant7flat5flat9: { degrees: "1 3 ♭5 ♭7 ♭9", suffix: "7(♭5,♭9)" , family: "Ninths" },
+  dominant7flat5sharp9: { degrees: "1 3 ♭5 ♭7 ♯9", suffix: "7(♭5,♯9)" , family: "Ninths" },
+  dominant7sharp5flat9: { degrees: "1 3 ♯5 ♭7 ♭9", suffix: "7(♯5,♭9)" , family: "Ninths" },
+  dominant7sharp5sharp9: { degrees: "1 3 ♯5 ♭7 ♯9", suffix: "7(♯5,♯9)" , family: "Ninths" },
+  dominant9flat5: { degrees: "1 3 ♭5 ♭7 9", suffix: "9♭5" , family: "Ninths" },
+  dominant9sharp5: { degrees: "1 3 ♯5 ♭7 9", suffix: "9♯5" , family: "Ninths" },
+  dominant13sharp11: { degrees: "1 3 5 ♭7 9 ♯11 13", suffix: "13♯11" , family: "Elevenths and thirteenths" },
+  dominant13flat9: { degrees: "1 3 5 ♭7 ♭9 13", suffix: "13♭9" , family: "Elevenths and thirteenths" },
+  dominant11flat9: { degrees: "1 3 5 ♭7 ♭9 11", suffix: "11♭9" , family: "Elevenths and thirteenths" },
 } as const satisfies Record<string, QualitySpec>;
 
 /**
@@ -171,13 +182,15 @@ export const BROWSABLE_QUALITIES: ReadonlyArray<{
   quality: ChordQuality;
   label: string;
   common: boolean;
+  family: string;
 }> = CHORD_QUALITIES.map((quality) => ({
   quality,
   // The suffix is the label, except for the two chords whose suffix is
   // nothing and a lowercase m.
   label:
-    quality === "major" ? "Major" : quality === "minor" ? "Minor" : QUALITIES[quality].suffix,
+    quality === "major" ? "Major" : quality === "minor" ? "Minor" : specOf(quality).suffix,
   common: specOf(quality).common === true,
+  family: specOf(quality).family,
 }));
 
 /**

@@ -12,7 +12,6 @@
 import { useMemo, useState } from "react";
 
 import {
-  BROWSABLE_QUALITIES,
   buildChord,
   keyQualityOf,
   respell,
@@ -25,7 +24,9 @@ import { positionsFor } from "@/core/chords/positions.ts";
 import { findPreset } from "@/core/tunings/presets.ts";
 import { resolveShape } from "@/core/tunings/resolve.ts";
 
+import { BassPanel, BassPicker } from "./BassPicker";
 import { ChordDiagram, fingersUsed } from "./ChordDiagram";
+import { QualityPanel, QualityPicker } from "./QualityPicker";
 import { HandLegend } from "./HandLegend";
 import { PositionSlider } from "./PositionSlider";
 import { Header } from "./Header";
@@ -50,18 +51,22 @@ const SPELLINGS: ReadonlyArray<{ value: RootSpelling; label: string; hint: strin
 export function ChordBrowser() {
   const [rootPitchClass, setRootPitchClass] = useState(0);
   const [quality, setQuality] = useState<ChordQuality>("major");
+  const [bass, setBass] = useState<number | null>(null);
   const [spelling, setSpelling] = useState<RootSpelling>("conventional");
   const [pro, setPro] = useState(false);
   const [chosenPosition, setChosenPosition] = useState(0);
+  // One at a time: two sheets hanging under the same row would overlap.
+  const [panel, setPanel] = useState<"quality" | "bass" | null>(null);
 
   // Only the root's name is chosen; every other note follows from it by
   // letter-stepping, so the whole chord and the whole key change together.
   const root = rootFromPitchClass(rootPitchClass, 4, spelling);
-  const chord = buildChord(root, quality);
+  const bassNote = bass === null ? null : rootFromPitchClass(bass, 3, spelling);
+  const chord = buildChord(root, quality, bassNote);
 
   const positions = useMemo(
-    () => positionsFor(rootPitchClass, quality, STANDARD),
-    [quality, rootPitchClass],
+    () => positionsFor(rootPitchClass, quality, STANDARD, { bass }),
+    [bass, quality, rootPitchClass],
   );
   // Clamped rather than reset: moving from a chord with four positions to
   // one with two should land on the last, not jump back to the first.
@@ -130,61 +135,61 @@ export function ChordBrowser() {
         </div>
       </div>
 
-      {/* Eleven qualities scroll for the same reason the roots do: they do
-          not fit a phone, and wrapping them implies a grouping that is not
-          real. Major and minor lead, so the two anyone wants are never
-          behind a scroll. */}
-      <div className="mx-auto flex w-full max-w-[1240px] flex-none items-center gap-3 px-[clamp(16px,4vw,28px)] pb-3">
-        <div className="min-w-0 flex-1 overflow-x-auto">
-          <div
-            role="tablist"
-            aria-label="Chord quality"
-            className="flex w-max gap-1 rounded-[12px] border border-edge bg-panel p-[3px]"
-          >
-            {BROWSABLE_QUALITIES.map(({ quality: value, label }) => (
-              <button
-                key={value}
-                role="tab"
-                type="button"
-                aria-selected={quality === value}
-                onClick={() => setQuality(value)}
-                className={`cursor-pointer rounded-[9px] px-3 py-2 text-[13px] font-medium whitespace-nowrap transition-colors min-[900px]:px-4 min-[900px]:py-2.5 min-[900px]:text-[15px] ${
-                  quality === value
-                    ? "bg-accent-bg text-accent"
-                    : "text-ink-muted hover:text-ink"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="flex flex-none items-center gap-3">
-          <span className="truncate font-mono text-[13px] text-ink-muted">
-            {chord.tones.map((tone) => rootName(respell(tone.note, spelling))).join(" ")}
-          </span>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={pro}
-            onClick={() => setPro((on) => !on)}
-            title="Show the notes you are holding and why"
-            className={`flex flex-none cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors ${
-              pro
-                ? "border-accent-edge bg-accent-bg text-accent"
-                : "border-edge bg-panel text-ink-muted hover:text-ink"
+      {/* The twenty common qualities scroll for the same reason the roots
+          do: they do not fit a phone, and wrapping them implies a grouping
+          that is not real. Major and minor lead, so the two anyone wants
+          are never behind a scroll, and the other thirty are one press
+          away rather than on screen fighting them for attention. */}
+      <div className="mx-auto flex w-full max-w-[1240px] flex-none items-center gap-2 px-[clamp(16px,4vw,28px)] pb-3 min-[900px]:gap-3">
+        <QualityPicker
+          quality={quality}
+          onChange={setQuality}
+          open={panel === "quality"}
+          onOpenChange={(open) => setPanel(open ? "quality" : null)}
+        />
+        <BassPicker
+          bass={bass}
+          spelling={spelling}
+          open={panel === "bass"}
+          onOpenChange={(open) => setPanel(open ? "bass" : null)}
+        />
+        <button
+          type="button"
+          role="switch"
+          aria-checked={pro}
+          onClick={() => setPro((on) => !on)}
+          title="Show the notes you are holding and why"
+          className={`flex flex-none cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors ${
+            pro
+              ? "border-accent-edge bg-accent-bg text-accent"
+              : "border-edge bg-panel text-ink-muted hover:text-ink"
+          }`}
+        >
+          <span
+            aria-hidden="true"
+            className={`h-2 w-2 rounded-full transition-colors ${
+              pro ? "bg-accent" : "bg-ink-ghost"
             }`}
-          >
-            <span
-              aria-hidden="true"
-              className={`h-2 w-2 rounded-full transition-colors ${
-                pro ? "bg-accent" : "bg-ink-ghost"
-              }`}
-            />
-            Pro
-          </button>
-        </div>
+          />
+          Pro
+        </button>
       </div>
+
+      {panel === "quality" && (
+        <QualityPanel
+          quality={quality}
+          onChange={setQuality}
+          onClose={() => setPanel(null)}
+        />
+      )}
+      {panel === "bass" && (
+        <BassPanel
+          bass={bass}
+          onChange={setBass}
+          spelling={spelling}
+          onClose={() => setPanel(null)}
+        />
+      )}
 
       {/* The key a chord is read against. Most of these qualities are
           neither major nor minor on their own, so `keyQualityOf` decides —
