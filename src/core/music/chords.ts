@@ -263,6 +263,27 @@ export function essentialTones(chord: Chord): ChordTone[] {
 }
 
 /**
+ * What a chord of this many notes is called.
+ *
+ * A count, nothing more — the words name how many different notes are
+ * stacked, not how they are stacked or how they are played. Worth having
+ * because the count is the fact behind every compromise a guitarist makes:
+ * a triad has three notes and six strings to put them on, so something
+ * gets doubled, while a hexad has six notes and four fingers, so something
+ * has to go.
+ *
+ * Tetrad is the standard word for four; "quadad" turns up but is informal.
+ * There is no useful name past seven, and nothing here reaches it — seven
+ * different notes is the whole major scale.
+ */
+const SIZE_NAMES = ["", "", "dyad", "triad", "tetrad", "pentad", "hexad", "heptad"];
+
+export function chordSize(chord: Chord): { count: number; name: string } {
+  const count = chord.tones.length;
+  return { count, name: SIZE_NAMES[count] ?? `${count}-note chord` };
+}
+
+/**
  * Essential tones in the order a voicing should give them up — least
  * important first.
  *

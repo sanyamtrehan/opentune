@@ -14,7 +14,7 @@
  * every line says the thing rather than naming it.
  */
 
-import { isRespelled, respell, rootName } from "@/core/music/chords.ts";
+import { chordSize, isRespelled, respell, rootName } from "@/core/music/chords.ts";
 import type { Chord, ChordQuality, RootSpelling } from "@/core/music/chords.ts";
 import { midiOf } from "@/core/music/notes.ts";
 import type { Note } from "@/core/music/types.ts";
@@ -225,6 +225,42 @@ export function InfoPane({ chord, analysis, pro, spelling }: InfoPaneProps) {
         {pro && (
           <>
 
+        {/*
+          * The count, and the gap between the chord and the shape. It is
+          * the fact underneath every compromise further down the note: a
+          * triad has three notes and six strings, so something is doubled,
+          * while a hexad has six notes and four fingers, so something has
+          * to go. Saying which is which stops "left out" reading as a
+          * fault in the diagram.
+          */}
+        <div>
+          <dt className="text-paper-ink-muted">Its size</dt>
+          <dd className="mt-0.5 text-paper-ink">
+            {chord.symbol} is a{" "}
+            <strong className="font-medium">{chordSize(chord).name}</strong> —{" "}
+            {word(chord.tones.length)} different notes
+            {chord.tones.length === 2
+              ? ", which makes it an interval rather than a chord, whatever guitarists call it"
+              : ""}
+            .{" "}
+            {analysis === null ? null : distinct < chord.tones.length ? (
+              <>
+                Six strings and four fingers will not hold {word(chord.tones.length)},
+                so this shape sounds {word(distinct)} of them and leaves the rest
+                to the ear.
+              </>
+            ) : sounding > distinct ? (
+              <>
+                This shape sounds all of them on {word(sounding)} strings, so{" "}
+                {sounding - distinct === 1 ? "one is" : `${word(sounding - distinct)} are`}{" "}
+                doubled.
+              </>
+            ) : (
+              <>One string each, nothing doubled and nothing left out.</>
+            )}
+          </dd>
+        </div>
+
         <div>
           <dt className="text-paper-ink-muted">Why those notes</dt>
           <dd className="mt-0.5 text-paper-ink">
@@ -236,19 +272,17 @@ export function InfoPane({ chord, analysis, pro, spelling }: InfoPaneProps) {
           </dd>
         </div>
 
-        {analysis && (
+        {/* Only when there is something to explain. With nothing doubled
+            the size line above has already said so, and a heading whose
+            body repeats it is worse than no heading. */}
+        {analysis && doubled.length > 0 && (
         <div>
           {/* Counted off the shape, not the chord: a four-string voicing of
               a five-note chord should not be asked why it has six strings. */}
           <dt className="text-paper-ink-muted">
-            {doubled.length === 0
-              ? "One of each"
-              : `Why ${word(sounding)} strings, ${word(distinct)} notes`}
+            {`Why ${word(sounding)} strings, ${word(distinct)} notes`}
           </dt>
           <dd className="mt-0.5 text-paper-ink">
-            {doubled.length === 0 ? (
-              <>Each note sounds once.</>
-            ) : (
               <>
                 {doubled.map((entry, index) => (
                   <span key={entry.tone.degree}>
@@ -267,7 +301,6 @@ export function InfoPane({ chord, analysis, pro, spelling }: InfoPaneProps) {
                 . Doubling a note makes the chord fuller without changing what
                 it is.
               </>
-            )}
           </dd>
         </div>
         )}
@@ -283,9 +316,10 @@ export function InfoPane({ chord, analysis, pro, spelling }: InfoPaneProps) {
                   panel calling the standard 9th chord broken. */}
               {analysis.missing.every((tone) => tone.degree === "5") &&
               chord.tones.length > 3
-                ? ". That is normal above a triad — the fifth is the note that" +
-                  " adds least, and it is the first one to go when five notes" +
-                  " have to fit under four fingers."
+                ? `. That is normal above a triad — the fifth is the note that` +
+                  ` adds least, and it is the first one to go when` +
+                  ` ${word(chord.tones.length)} notes have to fit under four` +
+                  ` fingers.`
                 : ", so it is not the full chord."}
             </dd>
           </div>
@@ -352,10 +386,17 @@ function degreeWord(degree: string): string {
       "4": "fourth",
       "5": "fifth",
       "♭5": "flattened fifth",
+      "6": "sixth",
+      "♭♭7": "doubly flattened seventh",
       "♭7": "flattened seventh",
       "7": "seventh",
+      "♯5": "raised fifth",
+      "♭9": "flattened ninth",
       "9": "ninth",
       "♯9": "raised ninth",
+      "11": "eleventh",
+      "♯11": "raised eleventh",
+      "13": "thirteenth",
     }[degree] ?? degree
   );
 }

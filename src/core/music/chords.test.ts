@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   CHORD_QUALITIES,
   buildChord,
+  chordSize,
   essentialTones,
   tonesByImportance,
   isRespelled,
@@ -402,5 +403,27 @@ test("a voicing gives up its notes in the right order", () => {
   for (const quality of CHORD_QUALITIES) {
     const last = tonesByImportance(buildChord(parseNote("C4"), quality)).at(-1);
     assert.equal(last?.degree, "1", quality);
+  }
+});
+
+
+test("a chord knows how many notes it is made of, and what that is called", () => {
+  const named = (quality: Parameters<typeof buildChord>[1]) =>
+    chordSize(buildChord(parseNote("C4"), quality)).name;
+
+  assert.equal(named("power"), "dyad", "two notes is an interval, strictly");
+  assert.equal(named("major"), "triad");
+  assert.equal(named("sus4"), "triad", "a suspension is still three notes");
+  assert.equal(named("dominant7"), "tetrad");
+  assert.equal(named("add9"), "tetrad", "the added note makes a fourth");
+  assert.equal(named("dominant9"), "pentad");
+  assert.equal(named("dominant13"), "hexad");
+  assert.equal(named("major13sharp11"), "heptad");
+
+  // Nothing in the library is bigger than the scale it comes from.
+  for (const quality of CHORD_QUALITIES) {
+    const size = chordSize(buildChord(parseNote("C4"), quality));
+    assert.ok(size.count >= 2 && size.count <= 7, quality);
+    assert.notEqual(size.name, "", quality);
   }
 });
