@@ -8,7 +8,7 @@
  * get wrong.
  */
 
-import { buildChord, rootFromPitchClass } from "../music/chords.ts";
+import { buildChord, essentialTones, rootFromPitchClass } from "../music/chords.ts";
 import type { ChordQuality } from "../music/chords.ts";
 import { midiOf } from "../music/notes.ts";
 import type { Note } from "../music/types.ts";
@@ -60,14 +60,19 @@ export function positionsFor(
   );
 
   /*
-   * A voicing that has dropped one of the three notes is a different chord,
-   * whatever the diagram is filed under: the top four of an A shape major is
-   * the chord, the bottom four is a root and a fifth — a power chord. So the
-   * generated partials are filtered against the chord itself rather than
-   * trusted because their parent was right.
+   * A voicing that has dropped one of the notes that make the chord what it
+   * is belongs under a different name, whatever the diagram is filed under:
+   * the top four of an A shape major is the chord, the bottom four is a root
+   * and a fifth — a power chord. So the generated partials are filtered
+   * against the chord itself rather than trusted because their parent was
+   * right.
+   *
+   * `essentialTones` is what "the notes that make it what it is" means, and
+   * past a triad that excludes the fifth — otherwise the standard 9th chord,
+   * which has no fifth in it, would be thrown out as not a 9th chord.
    */
   const wanted = new Set(
-    buildChord(rootFromPitchClass(pitchClass), quality).tones.map((tone) =>
+    essentialTones(buildChord(rootFromPitchClass(pitchClass), quality)).map((tone) =>
       ((midiOf(tone.note) % 12) + 12) % 12,
     ),
   );

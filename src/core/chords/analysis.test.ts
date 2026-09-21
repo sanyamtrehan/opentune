@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { buildChord, rootFromPitchClass } from "../music/chords.ts";
+import { buildChord, essentialTones, rootFromPitchClass } from "../music/chords.ts";
 import { formatNote } from "../music/notes.ts";
 import { findPreset } from "../tunings/presets.ts";
 import { resolveShape } from "../tunings/resolve.ts";
@@ -55,14 +55,20 @@ test("minor is reported as a flattened third, with the right note", () => {
   );
 });
 
-test("all eight open shapes are complete triads in root position", () => {
-  // Nothing missing and nothing inverted, which is exactly why these eight
-  // are the ones beginners learn. The fields exist for the shapes that come
-  // later, where both will matter.
+test("every open shape is complete and in root position", () => {
+  // Nothing missing and nothing inverted, which is exactly why these are the
+  // ones beginners learn. The one thing an open shape does drop is the fifth
+  // of a seventh chord — the open C7 has no G in it — and that is a voicing
+  // decision rather than an omission, so `essentialTones` allows for it.
   for (const shape of OPEN_SHAPES) {
     const chord = buildChord(rootFromPitchClass(shape.rootPitchClass), shape.quality);
     const analysis = analyseShape(shape, chord, standard);
-    assert.deepEqual(analysis.missing, [], `${shape.id} is missing a chord tone`);
+    const essential = new Set(essentialTones(chord).map((tone) => tone.degree));
+    assert.deepEqual(
+      analysis.missing.filter((tone) => essential.has(tone.degree)),
+      [],
+      `${shape.id} is missing a chord tone`,
+    );
     assert.equal(analysis.inverted, false, `${shape.id} is inverted`);
     assert.equal(analysis.bass.degree, "1");
     // Every sounding string belongs to the chord.

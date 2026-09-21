@@ -37,11 +37,21 @@ export interface MovablePattern {
 /**
  * The shapes worth sliding.
  *
- * E and A between them cover every root with the root in the bass; D adds the
- * voicing up at the top of the neck that neither of them reaches. The two
- * remaining CAGED shapes — C and G — are left out on purpose: as full barres
- * they need the first finger at two different frets at once, and nobody plays
- * them that way.
+ * For the triads, E and A between them cover every root with the root in the
+ * bass, and D adds the voicing up at the top of the neck that neither of them
+ * reaches. The two remaining CAGED shapes — C and G — are left out on
+ * purpose: as full barres they need the first finger at two different frets
+ * at once, and nobody plays them that way.
+ *
+ * The named shape is which open chord the pattern is: "E shape" is the open E
+ * with a barre where the nut was. That holds for the sevenths and the
+ * suspensions too, so a player who knows E7 already knows this. Where a
+ * quality has no such open chord to be named after — the 9ths and the 7♯9 —
+ * the pattern is named for the string its root sits on instead.
+ *
+ * Offsets are written with the lowest at zero, so the position fret is the
+ * fret the diagram starts at. Where the root is not on that fret, its own
+ * offset says so and `positionFretFor` allows for it.
  */
 export const MOVABLE_PATTERNS: readonly MovablePattern[] = [
   {
@@ -91,6 +101,203 @@ export const MOVABLE_PATTERNS: readonly MovablePattern[] = [
     offsets: ["muted", "muted", 0, 2, 3, 1],
     fingers: [null, null, 2, 3, 4, 1],
     rootString: 2,
+  },
+
+  {
+    id: "power-e",
+    name: "E string root",
+    quality: "power",
+    offsets: [0, 2, 2, "muted", "muted", "muted"],
+    fingers: [1, 3, 4, null, null, null],
+    rootString: 0,
+  },
+  {
+    id: "power-a",
+    name: "A string root",
+    quality: "power",
+    offsets: ["muted", 0, 2, 2, "muted", "muted"],
+    fingers: [null, 1, 3, 4, null, null],
+    rootString: 1,
+  },
+  {
+    id: "power-d",
+    name: "D string root",
+    quality: "power",
+    // Three frets to the octave here, not two: the B string is tuned a
+    // third above the G rather than a fourth, and every shape that crosses
+    // it pays for that.
+    offsets: ["muted", "muted", 0, 2, 3, "muted"],
+    fingers: [null, null, 1, 3, 4, null],
+    rootString: 2,
+  },
+  {
+    id: "sus2-a-shape",
+    name: "A shape",
+    quality: "sus2",
+    offsets: ["muted", 0, 2, 2, 0, 0],
+    fingers: [null, 1, 3, 4, 1, 1],
+    rootString: 1,
+  },
+  {
+    id: "sus2-d-shape",
+    name: "D shape",
+    quality: "sus2",
+    offsets: ["muted", "muted", 0, 2, 3, 0],
+    fingers: [null, null, 1, 2, 4, 1],
+    rootString: 2,
+  },
+  {
+    id: "sus4-e-shape",
+    name: "E shape",
+    quality: "sus4",
+    offsets: [0, 2, 2, 2, 0, 0],
+    fingers: [1, 2, 3, 4, 1, 1],
+    rootString: 0,
+  },
+  {
+    id: "sus4-a-shape",
+    name: "A shape",
+    quality: "sus4",
+    offsets: ["muted", 0, 2, 2, 3, 0],
+    fingers: [null, 1, 2, 3, 4, 1],
+    rootString: 1,
+  },
+  {
+    id: "sus4-d-shape",
+    name: "D shape",
+    quality: "sus4",
+    offsets: ["muted", "muted", 0, 2, 3, 3],
+    fingers: [null, null, 1, 2, 3, 4],
+    rootString: 2,
+  },
+  {
+    id: "dominant7-e-shape",
+    name: "E shape",
+    quality: "dominant7",
+    offsets: [0, 2, 0, 1, 0, 0],
+    fingers: [1, 3, 1, 2, 1, 1],
+    rootString: 0,
+  },
+  {
+    id: "dominant7-a-shape",
+    name: "A shape",
+    quality: "dominant7",
+    offsets: ["muted", 0, 2, 0, 2, 0],
+    fingers: [null, 1, 3, 1, 4, 1],
+    rootString: 1,
+  },
+  {
+    id: "dominant7-d-shape",
+    name: "D shape",
+    quality: "dominant7",
+    offsets: ["muted", "muted", 0, 2, 1, 2],
+    fingers: [null, null, 1, 3, 2, 4],
+    rootString: 2,
+  },
+  {
+    id: "major7-e-shape",
+    name: "E shape",
+    quality: "major7",
+    offsets: [0, 2, 1, 1, 0, 0],
+    fingers: [1, 4, 2, 3, 1, 1],
+    rootString: 0,
+  },
+  {
+    id: "major7-a-shape",
+    name: "A shape",
+    quality: "major7",
+    offsets: ["muted", 0, 2, 1, 2, 0],
+    fingers: [null, 1, 3, 2, 4, 1],
+    rootString: 1,
+  },
+  {
+    id: "major7-d-shape",
+    name: "D shape",
+    quality: "major7",
+    offsets: ["muted", "muted", 0, 2, 2, 2],
+    fingers: [null, null, 1, 2, 3, 4],
+    rootString: 2,
+  },
+  {
+    id: "minor7-e-shape",
+    name: "E shape",
+    quality: "minor7",
+    offsets: [0, 2, 0, 0, 0, 0],
+    fingers: [1, 3, 1, 1, 1, 1],
+    rootString: 0,
+  },
+  {
+    id: "minor7-a-shape",
+    name: "A shape",
+    quality: "minor7",
+    offsets: ["muted", 0, 2, 0, 1, 0],
+    fingers: [null, 1, 3, 1, 2, 1],
+    rootString: 1,
+  },
+  {
+    id: "minor7-d-shape",
+    name: "D shape",
+    quality: "minor7",
+    offsets: ["muted", "muted", 0, 2, 1, 1],
+    fingers: [null, null, 1, 3, 2, 2],
+    rootString: 2,
+  },
+  /*
+   * The open Cadd9 with a barre where the nut was — the root sits three
+   * frets above the barre rather than on it, which is what `rootString`
+   * plus its offset is for.
+   */
+  {
+    id: "add9-c-shape",
+    name: "C shape",
+    quality: "add9",
+    offsets: ["muted", 3, 2, 0, 3, 0],
+    fingers: [null, 3, 2, 1, 4, 1],
+    rootString: 1,
+  },
+  {
+    id: "add9-d-shape",
+    name: "D shape",
+    quality: "add9",
+    offsets: ["muted", "muted", 2, 1, 0, 2],
+    fingers: [null, null, 3, 2, 1, 4],
+    rootString: 2,
+  },
+  {
+    id: "dominant9-e-shape",
+    name: "E shape",
+    quality: "dominant9",
+    offsets: [0, 2, 0, 1, 0, 2],
+    fingers: [1, 3, 1, 2, 1, 4],
+    rootString: 0,
+  },
+  /*
+   * The one with no fifth in it: root, seventh, third, ninth on four
+   * adjacent strings. Every funk record.
+   */
+  {
+    id: "dominant9-a-root",
+    name: "A string root",
+    quality: "dominant9",
+    offsets: ["muted", 1, 0, 1, 1, "muted"],
+    fingers: [null, 2, 1, 3, 4, null],
+    rootString: 1,
+  },
+  {
+    id: "dominant7sharp9-e-shape",
+    name: "E shape",
+    quality: "dominant7sharp9",
+    offsets: [0, 2, 0, 1, 0, 3],
+    fingers: [1, 3, 1, 2, 1, 4],
+    rootString: 0,
+  },
+  {
+    id: "dominant7sharp9-a-root",
+    name: "A string root",
+    quality: "dominant7sharp9",
+    offsets: ["muted", 1, 0, 1, 2, "muted"],
+    fingers: [null, 2, 1, 3, 4, null],
+    rootString: 1,
   },
 ];
 
