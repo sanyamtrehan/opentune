@@ -3,16 +3,23 @@
 /**
  * The chord library.
  *
- * A first draft covering the eight chords with a genuine open voicing. The
- * other roots keep their tabs but state plainly that they need a barre,
- * because an empty frame reads as breakage and a missing tab hides the
- * shape of what is coming.
+ * Twelve roots by eleven qualities, and every one of them has shapes. Two
+ * rows of tabs rather than a dropdown for either: a player scanning for
+ * "the one that goes m7" finds it faster in a row they can see all of than
+ * in a list they have to open.
  */
 
 import { useMemo, useState } from "react";
 
-import { buildChord, respell, rootFromPitchClass, rootName } from "@/core/music/chords.ts";
-import type { RootSpelling } from "@/core/music/chords.ts";
+import {
+  BROWSABLE_QUALITIES,
+  buildChord,
+  keyQualityOf,
+  respell,
+  rootFromPitchClass,
+  rootName,
+} from "@/core/music/chords.ts";
+import type { ChordQuality, RootSpelling } from "@/core/music/chords.ts";
 import { analyseShape } from "@/core/chords/analysis.ts";
 import { positionsFor } from "@/core/chords/positions.ts";
 import { findPreset } from "@/core/tunings/presets.ts";
@@ -40,15 +47,9 @@ const SPELLINGS: ReadonlyArray<{ value: RootSpelling; label: string; hint: strin
   { value: "flat", label: "♭", hint: "Flats throughout: C♯ becomes D♭" },
 ];
 
-/** The toggle offers keys, so major and minor only — never diminished. */
-const QUALITIES: ReadonlyArray<{ value: "major" | "minor"; label: string }> = [
-  { value: "major", label: "Major" },
-  { value: "minor", label: "Minor" },
-];
-
 export function ChordBrowser() {
   const [rootPitchClass, setRootPitchClass] = useState(0);
-  const [quality, setQuality] = useState<"major" | "minor">("major");
+  const [quality, setQuality] = useState<ChordQuality>("major");
   const [spelling, setSpelling] = useState<RootSpelling>("conventional");
   const [pro, setPro] = useState(false);
   const [chosenPosition, setChosenPosition] = useState(0);
@@ -129,23 +130,36 @@ export function ChordBrowser() {
         </div>
       </div>
 
-      <div className="mx-auto flex w-full max-w-[1240px] flex-none gap-[10px] px-[clamp(16px,4vw,28px)] pb-3">
-        <div className="flex flex-none rounded-[12px] border border-edge bg-panel p-[3px]">
-          {QUALITIES.map(({ value, label }) => (
-            <button
-              key={value}
-              type="button"
-              aria-pressed={quality === value}
-              onClick={() => setQuality(value)}
-              className={`cursor-pointer rounded-[9px] px-[18px] py-2 text-[13px] font-medium transition-colors min-[900px]:px-6 min-[900px]:py-2.5 min-[900px]:text-[15px] ${
-                quality === value ? "bg-accent-bg text-accent" : "text-ink-muted hover:text-ink"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
+      {/* Eleven qualities scroll for the same reason the roots do: they do
+          not fit a phone, and wrapping them implies a grouping that is not
+          real. Major and minor lead, so the two anyone wants are never
+          behind a scroll. */}
+      <div className="mx-auto flex w-full max-w-[1240px] flex-none items-center gap-3 px-[clamp(16px,4vw,28px)] pb-3">
+        <div className="min-w-0 flex-1 overflow-x-auto">
+          <div
+            role="tablist"
+            aria-label="Chord quality"
+            className="flex w-max gap-1 rounded-[12px] border border-edge bg-panel p-[3px]"
+          >
+            {BROWSABLE_QUALITIES.map(({ quality: value, label }) => (
+              <button
+                key={value}
+                role="tab"
+                type="button"
+                aria-selected={quality === value}
+                onClick={() => setQuality(value)}
+                className={`cursor-pointer rounded-[9px] px-3 py-2 text-[13px] font-medium whitespace-nowrap transition-colors min-[900px]:px-4 min-[900px]:py-2.5 min-[900px]:text-[15px] ${
+                  quality === value
+                    ? "bg-accent-bg text-accent"
+                    : "text-ink-muted hover:text-ink"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
+        <div className="flex flex-none items-center gap-3">
           <span className="truncate font-mono text-[13px] text-ink-muted">
             {chord.tones.map((tone) => rootName(respell(tone.note, spelling))).join(" ")}
           </span>
@@ -172,7 +186,16 @@ export function ChordBrowser() {
         </div>
       </div>
 
-      <ScaleRow tonic={root} quality={quality} spelling={spelling} chord={chord} />
+      {/* The key a chord is read against. Most of these qualities are
+          neither major nor minor on their own, so `keyQualityOf` decides —
+          a 7th chord against the major key on its root, a m7 against the
+          minor one. */}
+      <ScaleRow
+        tonic={root}
+        quality={keyQualityOf(quality)}
+        spelling={spelling}
+        chord={chord}
+      />
 
       {/*
         * Two columns, with the right one always present. Genius does this
