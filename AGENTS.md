@@ -27,15 +27,17 @@ on the web, and works offline.
 **v1 (current):** 6-string guitar only. Two tuning modes, preset tunings plus
 user-defined tunings. No accounts, no backend, no database. Fully client-side.
 
-**Since added to v1:** a chord library — major and minor in every key, with
-their positions on the neck, the notes each shape actually sounds, and the
-diatonic harmony of the key. This was in the deferred "bounded" bucket and
-was pulled forward deliberately. It is the payoff for the spelled-note
-decision below: none of it is expressible with 0-11 pitch classes.
+**Since added to v1:** a chord library — eleven qualities in every key (5,
+major, minor, 7, maj7, m7, sus2, sus4, add9, 9, 7♯9), with their positions on
+the neck, the notes each shape actually sounds, and the diatonic harmony of
+the key. This was in the deferred "bounded" bucket and was pulled forward
+deliberately. It is the payoff for the spelled-note decision below: none of
+it is expressible with 0-11 pitch classes, and C7♯9 — whose raised ninth is a
+D♯ sounding against the E below it — is the case that proves it.
 
 **Still explicitly deferred:** 7/8-string, bass, ukulele, other instruments;
-sevenths, sus and extended chords; pentatonics and scale shapes on the neck;
-song-to-tuning lookup; play-along / playthrough.
+altered, diminished and 11th/13th chords; pentatonics and scale shapes on the
+neck; song-to-tuning lookup; play-along / playthrough.
 
 ## The two tuning modes
 
