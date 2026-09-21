@@ -30,76 +30,105 @@ const NUMBER_WORDS = ["no", "one", "two", "three", "four", "five", "six"];
  * not "the third is suspended", because the second sentence only helps a
  * reader who could have written it themselves.
  */
-function explain(quality: ChordQuality, notes: string[]): string {
-  const [root, third] = notes;
-  switch (quality) {
-    case "major":
-      return `A major chord is the 1st, 3rd and 5th notes of its scale — ${notes.join(", ")}.`;
-    case "minor":
-      return (
-        `A minor chord is a major one with its middle note lowered by a ` +
-        `semitone: ${notes.join(", ")}. The ${third} sits one fret under where ` +
-        `${root} major would put it, and that one fret is the whole difference.`
-      );
-    case "power":
-      return (
-        `Only the root and the fifth — ${notes.join(" and ")}. The third is what ` +
-        `decides between major and minor, and this chord does not have one, ` +
-        `which is why it sits over either.`
-      );
-    case "sus2":
-      return (
-        `Suspended. The third steps down to the note below it, the 2nd of the ` +
-        `scale: ${notes.join(", ")}. With no third there is nothing to say major ` +
-        `or minor, so it hangs unresolved until one arrives.`
-      );
-    case "sus4":
-      return (
-        `Suspended. The third steps up to the note above it, the 4th of the ` +
-        `scale: ${notes.join(", ")}. With no third there is nothing to say major ` +
-        `or minor, so it hangs unresolved until one arrives.`
-      );
-    case "dominant7":
-      return (
-        `A major chord with the 7th of the scale added and flattened a ` +
-        `semitone — ${notes.join(", ")}. That flattened seventh is the note that ` +
-        `sounds unfinished, and it is why a 7th chord pulls somewhere else.`
-      );
-    case "major7":
-      return (
-        `A major chord with the 7th of the scale added as it stands, ` +
-        `unflattened — ${notes.join(", ")}. It lands a semitone under the root, ` +
-        `which is where the softness comes from.`
-      );
-    case "minor7":
-      return (
-        `A minor chord with a flattened seventh on top — ${notes.join(", ")}. The ` +
-        `same seventh a dominant chord uses, over a minor third instead of a ` +
-        `major one.`
-      );
-    case "add9":
-      return (
-        `A plain major chord with the 9th added and no seventh under it — ` +
-        `which is all "add" means. The 9th is the 2nd of the scale an octave ` +
-        `up: ${notes.join(", ")}.`
-      );
-    case "dominant9":
-      return (
-        `A 7th chord that keeps stacking: ${notes.join(", ")}. Five notes and six ` +
-        `strings is a tight fit, so guitarists drop the fifth — it is the one ` +
-        `note the chord does not miss.`
-      );
-    case "dominant7sharp9":
-      return (
-        `A 7th chord with the 9th raised a semitone. The raised ninth sounds ` +
-        `the same as a minor third, so this chord holds a major and a minor ` +
-        `third at once — ${third} and ${notes[4]} over the same ${root} — and ` +
-        `the argument between them is the whole sound.`
-      );
-    case "diminished":
-      return `A minor chord with the fifth flattened too — ${notes.join(", ")}.`;
-  }
+function explain(quality: ChordQuality, notes: string[], degrees: string[]): string {
+  const written = EXPLANATIONS[quality];
+  if (written) return written(notes);
+
+  /*
+   * Everything else gets its recipe read back in words. Less illuminating
+   * than a sentence written for it, but true of all fifty qualities and
+   * never wrong — and for a chord like maj13♯11 the recipe genuinely is
+   * the explanation.
+   */
+  const words = degrees.map(degreeWord);
+  const last = words.pop();
+  return (
+    `${capitalise(words.join(", "))} and ${last}, stacked on ${notes[0]}: ` +
+    `${notes.join(", ")}.`
+  );
 }
+
+const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
+/**
+ * The qualities worth a sentence of their own, written for someone who does
+ * not already know the theory. Each says the thing rather than naming it —
+ * "the third steps aside" and not "the third is suspended", because the
+ * second sentence only helps a reader who could have written it themselves.
+ */
+const EXPLANATIONS: Partial<Record<ChordQuality, (notes: string[]) => string>> = {
+  major: (n) => `A major chord is the 1st, 3rd and 5th notes of its scale — ${n.join(", ")}.`,
+  minor: (n) =>
+    `A minor chord is a major one with its middle note lowered by a semitone: ` +
+    `${n.join(", ")}. The ${n[1]} sits one fret under where ${n[0]} major would ` +
+    `put it, and that one fret is the whole difference.`,
+  power: (n) =>
+    `Only the root and the fifth — ${n.join(" and ")}. The third is what decides ` +
+    `between major and minor, and this chord does not have one, which is why it ` +
+    `sits over either.`,
+  sus2: (n) =>
+    `Suspended. The third steps down to the note below it, the 2nd of the scale: ` +
+    `${n.join(", ")}. With no third there is nothing to say major or minor, so it ` +
+    `hangs unresolved until one arrives.`,
+  sus4: (n) =>
+    `Suspended. The third steps up to the note above it, the 4th of the scale: ` +
+    `${n.join(", ")}. With no third there is nothing to say major or minor, so it ` +
+    `hangs unresolved until one arrives.`,
+  dominant7: (n) =>
+    `A major chord with the 7th of the scale added and flattened a semitone — ` +
+    `${n.join(", ")}. That flattened seventh is the note that sounds unfinished, ` +
+    `and it is why a 7th chord pulls somewhere else.`,
+  major7: (n) =>
+    `A major chord with the 7th of the scale added as it stands, unflattened — ` +
+    `${n.join(", ")}. It lands a semitone under the root, which is where the ` +
+    `softness comes from.`,
+  minor7: (n) =>
+    `A minor chord with a flattened seventh on top — ${n.join(", ")}. The same ` +
+    `seventh a dominant chord uses, over a minor third instead of a major one.`,
+  add9: (n) =>
+    `A plain major chord with the 9th added and no seventh under it — which is ` +
+    `all "add" means. The 9th is the 2nd of the scale an octave up: ${n.join(", ")}.`,
+  dominant9: (n) =>
+    `A 7th chord that keeps stacking: ${n.join(", ")}. Five notes and six strings ` +
+    `is a tight fit, so guitarists drop the fifth — it is the one note the chord ` +
+    `does not miss.`,
+  dominant7sharp9: (n) =>
+    `A 7th chord with the 9th raised a semitone. The raised ninth sounds the same ` +
+    `as a minor third, so this chord holds a major and a minor third at once — ` +
+    `${n[1]} and ${n[4]} over the same ${n[0]} — and the argument between them is ` +
+    `the whole sound.`,
+  diminished: (n) =>
+    `A minor chord with the fifth flattened too: ${n.join(", ")}. Two minor thirds ` +
+    `stacked, which leaves it with no stable note to sit on — it always sounds ` +
+    `like it is on the way somewhere.`,
+  diminished7: (n) =>
+    `Three minor thirds stacked: ${n.join(", ")}. Every gap in it is the same ` +
+    `size, so it has no root to speak of — the same four notes make a diminished ` +
+    `7th on any of them, and the shape repeats every three frets.`,
+  augmented: (n) =>
+    `A major chord with the fifth raised instead of flattened: ${n.join(", ")}. ` +
+    `Two major thirds stacked, and like the diminished 7th it is symmetrical — ` +
+    `the same shape four frets up is the same chord again.`,
+  sixth: (n) =>
+    `A major chord with the 6th of the scale added — ${n.join(", ")}. Not a ` +
+    `seventh: the 6th is a whole tone lower, and it settles rather than pulls.`,
+  minor6: (n) =>
+    `A minor chord with the 6th of the scale added, unflattened — ${n.join(", ")}. ` +
+    `The major 6th over a minor third is what makes it sound wistful rather than ` +
+    `sad.`,
+  dominant7sus4: (n) =>
+    `A 7th chord with the third stepped up to the 4th: ${n.join(", ")}. It has the ` +
+    `seventh's pull without the third's opinion, which is why it so often falls ` +
+    `onto a plain 7th a beat later.`,
+  minor7flat5: (n) =>
+    `A minor 7th with the fifth flattened as well — ${n.join(", ")}. Also called ` +
+    `half-diminished: a diminished triad with a flattened seventh rather than a ` +
+    `doubly flattened one, which is what keeps it short of a full dim7.`,
+  minormajor7: (n) =>
+    `A minor chord carrying the unflattened 7th — ${n.join(", ")}. The seventh ` +
+    `leans up towards the root a semitone above while the third pulls the other ` +
+    `way, and that tension is the entire chord.`,
+};
 
 export interface InfoPaneProps {
   chord: Chord;
@@ -173,7 +202,13 @@ export function InfoPane({ chord, analysis, pro, spelling }: InfoPaneProps) {
 
         <div>
           <dt className="text-paper-ink-muted">Why those notes</dt>
-          <dd className="mt-0.5 text-paper-ink">{explain(chord.quality, spelled)}</dd>
+          <dd className="mt-0.5 text-paper-ink">
+            {explain(
+              chord.quality,
+              spelled,
+              chord.tones.map((tone) => tone.degree),
+            )}
+          </dd>
         </div>
 
         {analysis && (

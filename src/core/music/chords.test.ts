@@ -2,9 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
-  BROWSABLE_QUALITIES,
+  CHORD_QUALITIES,
   buildChord,
   essentialTones,
+  tonesByImportance,
   isRespelled,
   respell,
   rootFromPitchClass,
@@ -216,23 +217,76 @@ test("the thing the setting is for: D major's third", () => {
 });
 
 
-/** Semitones above the root, for every quality the browser offers. */
+/**
+ * Semitones above the root, for every quality in the library.
+ *
+ * Typed out independently of the source table on purpose. A test that
+ * derived these from `INTERVALS` would prove only that the code agrees with
+ * itself; this is the second opinion, and it is what catches a ♯5 written
+ * where a ♭5 was meant.
+ */
 const INTERVALS: Record<string, number[]> = {
-  power: [0, 7],
   major: [0, 4, 7],
   minor: [0, 3, 7],
-  sus2: [0, 2, 7],
-  sus4: [0, 5, 7],
+  power: [0, 7],
   dominant7: [0, 4, 7, 10],
   major7: [0, 4, 7, 11],
   minor7: [0, 3, 7, 10],
+  sus2: [0, 2, 7],
+  sus4: [0, 5, 7],
   add9: [0, 4, 7, 14],
   dominant9: [0, 4, 7, 10, 14],
   dominant7sharp9: [0, 4, 7, 10, 15],
+  diminished: [0, 3, 6],
+  diminished7: [0, 3, 6, 9],
+  augmented: [0, 4, 8],
+  sixth: [0, 4, 7, 9],
+  minor6: [0, 3, 7, 9],
+  dominant7sus4: [0, 5, 7, 10],
+  major9: [0, 4, 7, 11, 14],
+  minor9: [0, 3, 7, 10, 14],
+  minor7flat5: [0, 3, 6, 10],
+  major11: [0, 4, 7, 11, 14, 17],
+  major13: [0, 4, 7, 11, 14, 21],
+  major9sharp11: [0, 4, 7, 11, 14, 18],
+  major13sharp11: [0, 4, 7, 11, 14, 18, 21],
+  major7flat5: [0, 4, 6, 11],
+  major7sharp5: [0, 4, 8, 11],
+  majorflat5: [0, 4, 6],
+  six9: [0, 4, 7, 9, 14],
+  sus2sus4: [0, 2, 5, 7],
+  minoradd9: [0, 3, 7, 14],
+  minor6add9: [0, 3, 7, 9, 14],
+  minor11: [0, 3, 7, 10, 14, 17],
+  minor13: [0, 3, 7, 10, 14, 21],
+  minormajor7: [0, 3, 7, 11],
+  minormajor9: [0, 3, 7, 11, 14],
+  minor7sharp5: [0, 3, 8, 10],
+  dominant11: [0, 4, 7, 10, 14, 17],
+  dominant13: [0, 4, 7, 10, 14, 21],
+  dominant7flat5: [0, 4, 6, 10],
+  dominant7sharp5: [0, 4, 8, 10],
+  dominant7flat9: [0, 4, 7, 10, 13],
+  dominant7flat5flat9: [0, 4, 6, 10, 13],
+  dominant7flat5sharp9: [0, 4, 6, 10, 15],
+  dominant7sharp5flat9: [0, 4, 8, 10, 13],
+  dominant7sharp5sharp9: [0, 4, 8, 10, 15],
+  dominant9flat5: [0, 4, 6, 10, 14],
+  dominant9sharp5: [0, 4, 8, 10, 14],
+  dominant13sharp11: [0, 4, 7, 10, 14, 18, 21],
+  dominant13flat9: [0, 4, 7, 10, 13, 21],
+  dominant11flat9: [0, 4, 7, 10, 13, 17],
 };
 
+test("the table has a row for every quality and no more", () => {
+  assert.deepEqual(
+    [...CHORD_QUALITIES].sort(),
+    Object.keys(INTERVALS).sort(),
+  );
+});
+
 test("every quality sounds the intervals it is named for", () => {
-  for (const { quality } of BROWSABLE_QUALITIES) {
+  for (const quality of CHORD_QUALITIES) {
     for (let pitchClass = 0; pitchClass < 12; pitchClass += 1) {
       const root = rootFromPitchClass(pitchClass);
       const chord = buildChord(root, quality);
@@ -253,7 +307,7 @@ test("no chord uses the same letter twice, in any key or any spelling", () => {
    * not E♭, with the E still in the chord below it.
    */
   for (const spelling of ["conventional", "sharp", "flat"] as const) {
-    for (const { quality } of BROWSABLE_QUALITIES) {
+    for (const quality of CHORD_QUALITIES) {
       for (let pitchClass = 0; pitchClass < 12; pitchClass += 1) {
         const chord = buildChord(rootFromPitchClass(pitchClass, 4, spelling), quality);
         const letters = chord.tones.map((tone) => tone.note.letter);
@@ -273,6 +327,16 @@ test("no chord uses the same letter twice, in any key or any spelling", () => {
   }
 });
 
+test("no chord sounds the same pitch twice under two names", () => {
+  // `toneAt` finds a degree by pitch, so two degrees on one pitch class
+  // would make a fretted note's name a coin toss.
+  for (const quality of CHORD_QUALITIES) {
+    const chord = buildChord(parseNote("C4"), quality);
+    const pitches = chord.tones.map((tone) => ((midiOf(tone.note) % 12) + 12) % 12);
+    assert.equal(new Set(pitches).size, pitches.length, chord.symbol);
+  }
+});
+
 test("the Hendrix chord keeps its third and its sharp ninth apart", () => {
   assert.equal(spell("C4", "dominant7sharp9"), "C E G B♭ D♯");
   // The same sound as an E♭, one letter away from the E sitting under it.
@@ -280,12 +344,33 @@ test("the Hendrix chord keeps its third and its sharp ninth apart", () => {
 });
 
 test("suffixes are what a chart would print", () => {
-  const written = BROWSABLE_QUALITIES.map(
-    ({ quality }) => buildChord(parseNote("C4"), quality).symbol,
-  );
-  assert.deepEqual(written, [
-    "C", "Cm", "C5", "C7", "Cmaj7", "Cm7", "Csus2", "Csus4", "Cadd9", "C9", "C7♯9",
-  ]);
+  const written = (quality: Parameters<typeof buildChord>[1]) =>
+    buildChord(parseNote("C4"), quality).symbol;
+
+  assert.equal(written("major"), "C");
+  assert.equal(written("minor"), "Cm");
+  assert.equal(written("power"), "C5");
+  assert.equal(written("diminished7"), "Cdim7");
+  assert.equal(written("minor7flat5"), "Cm7♭5");
+  assert.equal(written("minormajor7"), "Cmmaj7");
+  assert.equal(written("six9"), "C6add9");
+  assert.equal(written("dominant7sharp5flat9"), "C7(♯5,♭9)");
+  assert.equal(written("major13sharp11"), "Cmaj13♯11");
+});
+
+test("a slash chord is the same chord standing on a named note", () => {
+  const g = buildChord(parseNote("G4"), "major", parseNote("D3"));
+  assert.equal(g.symbol, "G/D");
+  // Nothing about the chord itself changes: the bass is a requirement on
+  // the voicing, not a note added to the stack.
+  assert.deepEqual(g.tones.map((tone) => rootName(tone.note)), ["G", "B", "D"]);
+  assert.equal(g.bass!.letter, "D");
+
+  // And the bass need not be in the chord at all, which is what separates
+  // a slash chord from an inversion.
+  const c = buildChord(parseNote("C4"), "major", parseNote("F2"));
+  assert.equal(c.symbol, "C/F");
+  assert.equal(buildChord(parseNote("C4"), "major").bass, null);
 });
 
 test("the fifth is the note a voicing may drop, and only past a triad", () => {
@@ -297,4 +382,25 @@ test("the fifth is the note a voicing may drop, and only past a triad", () => {
   assert.deepEqual(degrees("sus4"), ["1", "4", "5"]);
   assert.deepEqual(degrees("dominant9"), ["1", "3", "♭7", "9"]);
   assert.deepEqual(degrees("major7"), ["1", "3", "7"]);
+
+  // An altered fifth is not the droppable one — it is the reason the chord
+  // was chosen.
+  assert.deepEqual(degrees("dominant7flat5"), ["1", "3", "♭5", "♭7"]);
+  assert.deepEqual(degrees("augmented"), ["1", "3", "♯5"]);
+
+  // A 13th chord is named for its thirteenth; the ninth and eleventh under
+  // it are filling.
+  assert.deepEqual(degrees("dominant13"), ["1", "3", "♭7", "13"]);
+  assert.deepEqual(degrees("major11"), ["1", "3", "7", "11"]);
+  assert.deepEqual(degrees("dominant13sharp11"), ["1", "3", "♭7", "♯11", "13"]);
+});
+
+test("a voicing gives up its notes in the right order", () => {
+  const order = tonesByImportance(buildChord(parseNote("C4"), "dominant13sharp11"));
+  assert.deepEqual(order.map((tone) => tone.degree), ["13", "♯11", "♭7", "3", "1"]);
+  // The root and the third are the last two, in every chord in the library.
+  for (const quality of CHORD_QUALITIES) {
+    const last = tonesByImportance(buildChord(parseNote("C4"), quality)).at(-1);
+    assert.equal(last?.degree, "1", quality);
+  }
 });

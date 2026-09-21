@@ -35,19 +35,19 @@ test("no scale repeats or skips a letter, in any key", () => {
 test("a major key is always I ii iii IV V vi vii°", () => {
   assert.equal(
     harmony("C4", "major"),
-    "I:C ii:Dm iii:Em IV:F V:G vi:Am vii°:B°",
+    "I:C ii:Dm iii:Em IV:F V:G vi:Am vii°:Bdim",
   );
   // Same pattern, different key — which is the point of numerals.
   assert.equal(
     harmony("G4", "major"),
-    "I:G ii:Am iii:Bm IV:C V:D vi:Em vii°:F♯°",
+    "I:G ii:Am iii:Bm IV:C V:D vi:Em vii°:F♯dim",
   );
 });
 
 test("a minor key is i ii° III iv v VI VII", () => {
   assert.equal(
     harmony("A4", "minor"),
-    "i:Am ii°:B° III:C iv:Dm v:Em VI:F VII:G",
+    "i:Am ii°:Bdim III:C iv:Dm v:Em VI:F VII:G",
   );
 });
 
@@ -74,7 +74,9 @@ test("the qualities follow the same pattern in every key", () => {
 
 test("the diminished chord really is diminished", () => {
   const seventh = diatonicChords(parseNote("C4"), "major")[6].chord;
-  assert.equal(seventh.symbol, "B°");
+  // Written "dim" as a chord chart writes it. The ring is the scale row's
+  // own rendering of the numeral, not the chord's name.
+  assert.equal(seventh.symbol, "Bdim");
   assert.deepEqual(seventh.tones.map((tone) => rootName(tone.note)), ["B", "D", "F"]);
   assert.deepEqual(seventh.tones.map((tone) => tone.degree), ["1", "♭3", "♭5"]);
 });
