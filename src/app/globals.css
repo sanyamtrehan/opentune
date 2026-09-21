@@ -292,3 +292,18 @@ body > * {
     animation: none;
   }
 }
+
+/**
+ * A scroller with no scrollbar.
+ *
+ * For the tab rows, where the bar would eat a third of a 44px pill and sit
+ * across the tabs. What it takes away — any sign that the row continues —
+ * `ScrollRow` puts back as a fade at whichever edge has more behind it.
+ */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

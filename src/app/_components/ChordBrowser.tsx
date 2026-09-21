@@ -27,6 +27,7 @@ import { resolveShape } from "@/core/tunings/resolve.ts";
 import { BassPanel, BassPicker } from "./BassPicker";
 import { ChordDiagram, fingersUsed } from "./ChordDiagram";
 import { QualityPanel, QualityPicker } from "./QualityPicker";
+import { ScrollRow } from "./ScrollRow";
 import { HandLegend } from "./HandLegend";
 import { PositionSlider } from "./PositionSlider";
 import { Header } from "./Header";
@@ -81,33 +82,27 @@ export function ChordBrowser() {
       {/* Roots scroll rather than wrap: twelve tabs do not fit a phone, and
           wrapping them onto two rows implies a grouping that is not real. */}
       <div className="mx-auto flex w-full max-w-[1240px] flex-none items-center gap-3 px-[clamp(16px,4vw,28px)] pb-2">
-        <div className="min-w-0 flex-1 overflow-x-auto">
-          <div
-            role="tablist"
-            aria-label="Chord root"
-            className="flex w-max gap-1 rounded-[12px] border border-edge bg-panel p-[3px]"
-          >
-            {Array.from({ length: 12 }, (_, pitchClass) => {
-              const selected = pitchClass === rootPitchClass;
-              return (
-                <button
-                  key={pitchClass}
-                  role="tab"
-                  type="button"
-                  aria-selected={selected}
-                  onClick={() => setRootPitchClass(pitchClass)}
-                  className={`min-w-[42px] cursor-pointer rounded-[9px] px-3 py-2 text-[13px] font-medium transition-colors min-[900px]:min-w-[54px] min-[900px]:px-4 min-[900px]:py-2.5 min-[900px]:text-[15px] ${
-                    selected
-                      ? "bg-accent-bg text-accent"
-                      : "text-ink hover:text-accent-bright"
-                  }`}
-                >
-                  {rootName(rootFromPitchClass(pitchClass, 4, spelling))}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <ScrollRow label="Chord root">
+          {Array.from({ length: 12 }, (_, pitchClass) => {
+            const selected = pitchClass === rootPitchClass;
+            return (
+              <button
+                key={pitchClass}
+                role="tab"
+                type="button"
+                aria-selected={selected}
+                onClick={() => setRootPitchClass(pitchClass)}
+                className={`min-w-[42px] cursor-pointer rounded-[9px] px-3 py-2 text-[13px] font-medium transition-colors min-[900px]:min-w-[54px] min-[900px]:px-4 min-[900px]:py-2.5 min-[900px]:text-[15px] ${
+                  selected
+                    ? "bg-accent-bg text-accent"
+                    : "text-ink hover:text-accent-bright"
+                }`}
+              >
+                {rootName(rootFromPitchClass(pitchClass, 4, spelling))}
+              </button>
+            );
+          })}
+        </ScrollRow>
 
         {/* Sits above the Pro switch, so the two display options are
             together and neither is mistaken for a chord control. */}

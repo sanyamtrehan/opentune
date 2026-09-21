@@ -19,6 +19,8 @@ import { useEffect, useRef } from "react";
 import { BROWSABLE_QUALITIES, CHORD_FAMILIES } from "@/core/music/chords.ts";
 import type { ChordQuality } from "@/core/music/chords.ts";
 
+import { ScrollRow } from "./ScrollRow";
+
 const COMMON = BROWSABLE_QUALITIES.filter((entry) => entry.common);
 
 export interface QualityPickerProps {
@@ -38,30 +40,24 @@ export function QualityPicker({ quality, onChange, open, onOpenChange }: Quality
 
   return (
     <>
-      <div className="min-w-0 flex-1 overflow-x-auto">
-        <div
-          role="tablist"
-          aria-label="Chord quality"
-          className="flex w-max gap-1 rounded-[12px] border border-edge bg-panel p-[3px]"
-        >
-          {row.map(({ quality: value, label }) => (
-            <button
-              key={value}
-              role="tab"
-              type="button"
-              aria-selected={quality === value}
-              onClick={() => onChange(value)}
-              className={`cursor-pointer rounded-[9px] px-3 py-2 text-[13px] font-medium whitespace-nowrap transition-colors min-[900px]:px-4 min-[900px]:py-2.5 min-[900px]:text-[15px] ${
-                quality === value
-                  ? "bg-accent-bg text-accent"
-                  : "text-ink-muted hover:text-ink"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <ScrollRow label="Chord quality">
+        {row.map(({ quality: value, label }) => (
+          <button
+            key={value}
+            role="tab"
+            type="button"
+            aria-selected={quality === value}
+            onClick={() => onChange(value)}
+            className={`cursor-pointer rounded-[9px] px-3 py-2 text-[13px] font-medium whitespace-nowrap transition-colors min-[900px]:px-4 min-[900px]:py-2.5 min-[900px]:text-[15px] ${
+              quality === value
+                ? "bg-accent-bg text-accent"
+                : "text-ink-muted hover:text-ink"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </ScrollRow>
 
       <button
         type="button"
