@@ -441,9 +441,14 @@ body > * {
     display: block;
   }
 
-  /* Room for the strip, so it covers nothing. Matches the 7rem above. */
+  /*
+   * Room for the strip, so it covers nothing. More than the 7rem above,
+   * because the strip is visually taller than it is in layout: the handle
+   * sits above the paper and the tape above that, and neither is part of
+   * the box the translate is a percentage of.
+   */
   .chord-stage {
-    padding-bottom: 7rem;
+    padding-bottom: 9.5rem;
   }
 }
 

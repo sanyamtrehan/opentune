@@ -19,7 +19,6 @@
 import { baseFret } from "@/core/chords/positions.ts";
 import type { ChordShape, Finger } from "@/core/chords/shapes.ts";
 
-const VIEW_WIDTH = 248;
 const VIEW_HEIGHT = 250;
 
 /** Room on the left for the fret numbers. */
@@ -35,6 +34,17 @@ const BOARD_PAD = 16;
 const BOARD_X = STRING_X[0] - BOARD_PAD;
 const BOARD_WIDTH = STRING_X[5] - STRING_X[0] + BOARD_PAD * 2;
 const BOARD_HEIGHT = FRET_COUNT * FRET_GAP;
+
+/*
+ * The box is as wide as the board plus an equal margin either side, rather
+ * than the board plus a gutter for the fret numbers and whatever was left
+ * on the right. That asymmetry was 28 units — the board sat 14 right of
+ * centre, and since everything else on the page centres on this box, the
+ * chord name and the position dots were all fractionally left of the
+ * diagram they belonged to. Close enough to look like a mistake, which it
+ * was, and far enough to see.
+ */
+const VIEW_WIDTH = BOARD_X * 2 + BOARD_WIDTH;
 
 /** Open-string marker. Large enough to hold a note name inside it. */
 const OPEN_RADIUS = 11;

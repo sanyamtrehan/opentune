@@ -278,7 +278,7 @@ export function ChordBrowser() {
                     /* Height-driven on a phone, width-driven on a desk.
                        See the `.position-slider` rules in globals.css. */
                     className="mx-auto h-full w-auto max-w-full min-[900px]:h-auto min-[900px]:w-full min-[900px]:max-h-[min(52vh,500px)]"
-                    style={{ aspectRatio: "248 / 250" }}
+                    style={{ aspectRatio: "276 / 250" }}
                   >
                     <ChordDiagram
                       shape={candidate}
