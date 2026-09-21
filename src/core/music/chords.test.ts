@@ -2,7 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  BROWSABLE_QUALITIES,
   buildChord,
+  essentialTones,
   isRespelled,
   respell,
   rootFromPitchClass,
@@ -12,7 +14,7 @@ import {
 import { formatNote, midiOf, parseNote } from "./notes.ts";
 
 /** "C E G" — the chord's notes without octaves, for readable assertions. */
-function spell(root: string, quality: "major" | "minor"): string {
+function spell(root: string, quality: Parameters<typeof buildChord>[1]): string {
   return buildChord(parseNote(root), quality)
     .tones.map((tone) => rootName(tone.note))
     .join(" ");
@@ -211,4 +213,88 @@ test("the thing the setting is for: D major's third", () => {
     chord.tones.map((tone) => isRespelled(tone.note, "flat")),
     [false, true, false],
   );
+});
+
+
+/** Semitones above the root, for every quality the browser offers. */
+const INTERVALS: Record<string, number[]> = {
+  power: [0, 7],
+  major: [0, 4, 7],
+  minor: [0, 3, 7],
+  sus2: [0, 2, 7],
+  sus4: [0, 5, 7],
+  dominant7: [0, 4, 7, 10],
+  major7: [0, 4, 7, 11],
+  minor7: [0, 3, 7, 10],
+  add9: [0, 4, 7, 14],
+  dominant9: [0, 4, 7, 10, 14],
+  dominant7sharp9: [0, 4, 7, 10, 15],
+};
+
+test("every quality sounds the intervals it is named for", () => {
+  for (const { quality } of BROWSABLE_QUALITIES) {
+    for (let pitchClass = 0; pitchClass < 12; pitchClass += 1) {
+      const root = rootFromPitchClass(pitchClass);
+      const chord = buildChord(root, quality);
+      assert.deepEqual(
+        chord.tones.map((tone) => midiOf(tone.note) - midiOf(root)),
+        INTERVALS[quality],
+        chord.symbol,
+      );
+    }
+  }
+});
+
+test("no chord uses the same letter twice, in any key or any spelling", () => {
+  /*
+   * The point of letter-stepping, checked across everything at once. A
+   * ninth is a second an octave up and takes the second's letter, so it
+   * cannot collide with the third — which is exactly why C7♯9 is D♯ and
+   * not E♭, with the E still in the chord below it.
+   */
+  for (const spelling of ["conventional", "sharp", "flat"] as const) {
+    for (const { quality } of BROWSABLE_QUALITIES) {
+      for (let pitchClass = 0; pitchClass < 12; pitchClass += 1) {
+        const chord = buildChord(rootFromPitchClass(pitchClass, 4, spelling), quality);
+        const letters = chord.tones.map((tone) => tone.note.letter);
+        assert.equal(
+          new Set(letters).size,
+          letters.length,
+          `${spelling} ${chord.symbol}: ${letters.join("")}`,
+        );
+        for (const tone of chord.tones) {
+          assert.ok(
+            Math.abs(tone.note.accidental) <= 2,
+            `${chord.symbol} needs a triple accidental on ${tone.note.letter}`,
+          );
+        }
+      }
+    }
+  }
+});
+
+test("the Hendrix chord keeps its third and its sharp ninth apart", () => {
+  assert.equal(spell("C4", "dominant7sharp9"), "C E G B♭ D♯");
+  // The same sound as an E♭, one letter away from the E sitting under it.
+  assert.equal(spell("E4", "dominant7sharp9"), "E G♯ B D F×");
+});
+
+test("suffixes are what a chart would print", () => {
+  const written = BROWSABLE_QUALITIES.map(
+    ({ quality }) => buildChord(parseNote("C4"), quality).symbol,
+  );
+  assert.deepEqual(written, [
+    "C", "Cm", "C5", "C7", "Cmaj7", "Cm7", "Csus2", "Csus4", "Cadd9", "C9", "C7♯9",
+  ]);
+});
+
+test("the fifth is the note a voicing may drop, and only past a triad", () => {
+  const degrees = (quality: Parameters<typeof buildChord>[1]) =>
+    essentialTones(buildChord(parseNote("C4"), quality)).map((tone) => tone.degree);
+
+  assert.deepEqual(degrees("major"), ["1", "3", "5"], "a triad has nothing to spare");
+  assert.deepEqual(degrees("power"), ["1", "5"], "the fifth is a power chord's whole idea");
+  assert.deepEqual(degrees("sus4"), ["1", "4", "5"]);
+  assert.deepEqual(degrees("dominant9"), ["1", "3", "♭7", "9"]);
+  assert.deepEqual(degrees("major7"), ["1", "3", "7"]);
 });

@@ -17,9 +17,26 @@ import type { Letter, Note } from "./types.ts";
 /**
  * Diminished is here for diatonic harmony rather than for the chord browser:
  * the seventh chord of any major key is diminished, and a scale that skipped
- * it would be a lie. Nothing offers it as a choice yet.
+ * it would be a lie. It is the one quality the browser does not offer.
+ *
+ * The names are spelled out rather than written as players write them —
+ * `dominant7`, not `7` — because a type whose members are "7", "9" and "5"
+ * reads like a number somewhere else in the file. What players write is the
+ * suffix, below.
  */
-export type ChordQuality = "major" | "minor" | "diminished";
+export type ChordQuality =
+  | "power"
+  | "major"
+  | "minor"
+  | "diminished"
+  | "sus2"
+  | "sus4"
+  | "dominant7"
+  | "major7"
+  | "minor7"
+  | "add9"
+  | "dominant9"
+  | "dominant7sharp9";
 
 /**
  * Semitones above the root for each degree, and how far to step the letter.
@@ -28,41 +45,136 @@ export type ChordQuality = "major" | "minor" | "diminished";
  * letters up whether it is major or minor, so C's third is some kind of E and
  * never any kind of D or F.
  */
+const ROOT = { semitones: 0, letterStep: 0, degree: "1" } as const;
+const MAJOR_THIRD = { semitones: 4, letterStep: 2, degree: "3" } as const;
+const MINOR_THIRD = { semitones: 3, letterStep: 2, degree: "♭3" } as const;
+const FIFTH = { semitones: 7, letterStep: 4, degree: "5" } as const;
+const FLAT_SEVENTH = { semitones: 10, letterStep: 6, degree: "♭7" } as const;
+
 const DEGREES: Record<ChordQuality, ReadonlyArray<{ semitones: number; letterStep: number; degree: string }>> = {
-  major: [
-    { semitones: 0, letterStep: 0, degree: "1" },
-    { semitones: 4, letterStep: 2, degree: "3" },
-    { semitones: 7, letterStep: 4, degree: "5" },
-  ],
-  minor: [
-    { semitones: 0, letterStep: 0, degree: "1" },
-    { semitones: 3, letterStep: 2, degree: "♭3" },
-    { semitones: 7, letterStep: 4, degree: "5" },
-  ],
+  power: [ROOT, FIFTH],
+  major: [ROOT, MAJOR_THIRD, FIFTH],
+  minor: [ROOT, MINOR_THIRD, FIFTH],
   diminished: [
-    { semitones: 0, letterStep: 0, degree: "1" },
-    { semitones: 3, letterStep: 2, degree: "♭3" },
+    ROOT,
+    MINOR_THIRD,
     { semitones: 6, letterStep: 4, degree: "♭5" },
+  ],
+  // Suspended: the third steps aside, to the note below it or the note
+  // above. Nothing is left to say whether the chord is happy or sad, which
+  // is the whole effect.
+  sus2: [ROOT, { semitones: 2, letterStep: 1, degree: "2" }, FIFTH],
+  sus4: [ROOT, { semitones: 5, letterStep: 3, degree: "4" }, FIFTH],
+  dominant7: [ROOT, MAJOR_THIRD, FIFTH, FLAT_SEVENTH],
+  major7: [ROOT, MAJOR_THIRD, FIFTH, { semitones: 11, letterStep: 6, degree: "7" }],
+  minor7: [ROOT, MINOR_THIRD, FIFTH, FLAT_SEVENTH],
+  // A ninth is a second an octave up, so it keeps the second's letter — and
+  // `add9` means exactly that: a triad with the note added, no seventh.
+  add9: [ROOT, MAJOR_THIRD, FIFTH, { semitones: 14, letterStep: 1, degree: "9" }],
+  dominant9: [
+    ROOT,
+    MAJOR_THIRD,
+    FIFTH,
+    FLAT_SEVENTH,
+    { semitones: 14, letterStep: 1, degree: "9" },
+  ],
+  /*
+   * The Hendrix chord. Its ♯9 sounds the same as the minor third — in C, a
+   * D♯ against an E — and letter-stepping is what keeps that on the page:
+   * the ninth is a kind of D whatever it is doing, so it is D♯ and not E♭,
+   * which is why the chord looks as strange as it sounds.
+   */
+  dominant7sharp9: [
+    ROOT,
+    MAJOR_THIRD,
+    FIFTH,
+    FLAT_SEVENTH,
+    { semitones: 15, letterStep: 1, degree: "♯9" },
   ],
 };
 
 export interface ChordTone {
   note: Note;
-  /** "1", "3", "♭3", "5" — what this note is doing in the chord. */
+  /** "1", "♭3", "5", "♭7", "♯9" — what this note is doing in the chord. */
   degree: string;
 }
 
 export interface Chord {
   root: Note;
   quality: ChordQuality;
-  /** Root, third, fifth — in that order, spelled. */
+  /** Root, third, fifth, then anything above — in that order, spelled. */
   tones: ChordTone[];
-  /** "C", "Cm", "F#m". */
+  /** "C", "Cm", "F♯m7", "C7♯9". */
   symbol: string;
 }
 
 /** How the quality is written after the root. */
-const SUFFIX: Record<ChordQuality, string> = { major: "", minor: "m", diminished: "°" };
+const SUFFIX: Record<ChordQuality, string> = {
+  power: "5",
+  major: "",
+  minor: "m",
+  diminished: "°",
+  sus2: "sus2",
+  sus4: "sus4",
+  dominant7: "7",
+  major7: "maj7",
+  minor7: "m7",
+  add9: "add9",
+  dominant9: "9",
+  dominant7sharp9: "7♯9",
+};
+
+/**
+ * The qualities the chord browser offers, in the order it offers them.
+ *
+ * Major and minor lead because they are most of what anyone plays;
+ * everything after is roughly in the order a player meets it. Diminished is
+ * absent on purpose — it belongs to the key rather than to the browser, and
+ * a guitarist reaching for one is reaching for a seventh chord.
+ */
+export const BROWSABLE_QUALITIES: ReadonlyArray<{ quality: ChordQuality; label: string }> = [
+  { quality: "major", label: "Major" },
+  { quality: "minor", label: "Minor" },
+  { quality: "power", label: "5" },
+  { quality: "dominant7", label: "7" },
+  { quality: "major7", label: "maj7" },
+  { quality: "minor7", label: "m7" },
+  { quality: "sus2", label: "sus2" },
+  { quality: "sus4", label: "sus4" },
+  { quality: "add9", label: "add9" },
+  { quality: "dominant9", label: "9" },
+  { quality: "dominant7sharp9", label: "7♯9" },
+];
+
+/**
+ * Which key a chord is read against.
+ *
+ * The scale row needs a major or a minor key, and most of these qualities
+ * are neither on their own. A dominant seventh belongs to the major key on
+ * its root as far as a guitarist is concerned — C7 in the key of C — and a
+ * suspended or power chord has no third to argue either way, so major is
+ * the useful default. Only the ones with a flattened third read as minor.
+ */
+export function keyQualityOf(quality: ChordQuality): "major" | "minor" {
+  return quality === "minor" || quality === "minor7" || quality === "diminished"
+    ? "minor"
+    : "major";
+}
+
+/**
+ * The tones a voicing has to sound to count as this chord.
+ *
+ * The fifth is the one note a guitarist drops, and past a triad it is
+ * dropped as a matter of course: the standard 9th chord on the middle four
+ * strings has no fifth in it at all. It adds nothing the root has not
+ * already said, while the third and the seventh are what make the chord
+ * that chord. In a triad there is nothing to spare, and in a power chord
+ * the fifth is the entire idea.
+ */
+export function essentialTones(chord: Chord): ChordTone[] {
+  if (chord.tones.length <= 3) return chord.tones;
+  return chord.tones.filter((tone) => tone.degree !== "5");
+}
 
 function accidentalText(note: Note): string {
   return note.accidental === 1
@@ -84,7 +196,7 @@ export function rootName(note: Note): string {
   return `${note.letter}${accidentalText(note)}`;
 }
 
-/** Build a triad on a spelled root. */
+/** Build a chord on a spelled root. */
 export function buildChord(root: Note, quality: ChordQuality): Chord {
   const rootMidi = midiOf(root);
   const rootLetterIndex = LETTERS.indexOf(root.letter);
