@@ -307,3 +307,148 @@ body > * {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/**
+ * The position slider's two arrangements.
+ *
+ * On a wide screen the arrows flank the diagram, which is where you look
+ * for them. On a phone that costs the diagram 88px of a 358px row — a
+ * quarter of it — to put two buttons in the two places a thumb reaches
+ * least. So below 900px they drop to either side of the dots, where they
+ * are still before and after the diagram, and the diagram gets the width.
+ *
+ * Grid areas rather than two sets of buttons hidden at different sizes:
+ * one control, moved, not one control duplicated.
+ */
+.position-slider {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "view view view"
+    "prev dots next";
+  align-items: center;
+  justify-items: center;
+  column-gap: 4px;
+  row-gap: 12px;
+}
+
+.position-slider > .ps-prev {
+  grid-area: prev;
+}
+.position-slider > .ps-view {
+  grid-area: view;
+  width: 100%;
+}
+.position-slider > .ps-next {
+  grid-area: next;
+}
+.position-slider > .ps-dots {
+  grid-area: dots;
+}
+
+@media (min-width: 900px) {
+  .position-slider {
+    grid-template-areas:
+      "prev view next"
+      "dots dots dots";
+    column-gap: 12px;
+  }
+}
+
+/**
+ * On a phone the diagram is sized by the height left over, not by the
+ * width available.
+ *
+ * The page does not scroll there — the note hangs off the bottom edge
+ * instead — so everything above it has to fit, and the diagram is the one
+ * part that can give. Width-driven sizing made it as tall as the screen
+ * was wide and pushed the rest off; this lets it take the room that is
+ * left and no more. The SVG keeps its own proportions inside whatever box
+ * it is handed, so it simply gets smaller.
+ */
+@media (max-width: 899px) {
+  .position-slider {
+    flex: 1;
+    /*
+     * A floor, or the diagram gives up everything it has. On a phone held
+     * sideways the control rows alone are most of the screen, and a
+     * diagram told only to take what is left takes nothing. Below this it
+     * stops shrinking and the page scrolls instead — which is the right
+     * answer for a viewport that genuinely cannot hold the thing.
+     */
+    min-height: 240px;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .position-slider > .ps-view {
+    min-height: 0;
+    height: 100%;
+  }
+
+  .ps-viewport,
+  .ps-track,
+  .ps-item {
+    height: 100%;
+  }
+}
+
+/**
+ * The note as a sheet hanging off the bottom edge.
+ *
+ * Only on a phone held upright. Two conditions, because the behaviour
+ * needs both: narrow enough that there is no room beside the diagram, and
+ * tall enough that a strip of paper at the bottom costs less than the
+ * scrolling it saves. A phone turned sideways has 390px of height, and
+ * giving 112 of them to a note that is not being read is worse than
+ * putting the note back under the page and letting the page scroll —
+ * which is what happens by default, here and on a desk.
+ *
+ * Written here rather than as a pile of inline variants because the rule
+ * is genuinely two-dimensional, and `[@media(min-height:600px)]:` repeated
+ * down a class list says none of the above.
+ */
+.note-sheet__handle,
+.note-sheet__scrim,
+.note-sheet__tap {
+  display: none;
+}
+
+@media (max-width: 899px) and (min-height: 600px) {
+  .note-sheet {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 40;
+    padding-inline: clamp(16px, 4vw, 28px);
+    overflow: hidden;
+    translate: 0 calc(100% - 7rem);
+    transition: translate 300ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .note-sheet[data-open="true"] {
+    max-height: 86dvh;
+    overflow-y: auto;
+    translate: 0 0;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  .note-sheet__handle {
+    display: flex;
+  }
+
+  .note-sheet__scrim,
+  .note-sheet__tap {
+    display: block;
+  }
+
+  /* Room for the strip, so it covers nothing. Matches the 7rem above. */
+  .chord-stage {
+    padding-bottom: 7rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .note-sheet {
+    transition: none;
+  }
+}

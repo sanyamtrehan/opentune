@@ -21,10 +21,15 @@ export function Header() {
   const pathname = usePathname();
 
   return (
-    <header className="flex flex-none items-center justify-between gap-4 px-[clamp(16px,4vw,28px)] pt-[14px] pb-2">
+    <header className="flex flex-none items-center justify-between gap-3 px-[clamp(16px,4vw,28px)] pt-[14px] pb-2">
       <div className="flex items-baseline gap-2.5">
-        <span className="text-[20px] font-bold tracking-[-0.02em]">OpenTune</span>
-        <span className="label-caps">every tuning, free</span>
+        <span className="text-[18px] font-bold tracking-[-0.02em] min-[560px]:text-[20px]">
+          OpenTune
+        </span>
+        {/* The tagline is the first thing to go. On a phone it wrapped to
+            three lines and pushed the header to twice its height, to say
+            something the page itself says. */}
+        <span className="label-caps hidden min-[560px]:inline">every tuning, free</span>
       </div>
 
       <nav className="flex gap-1 rounded-full border border-edge bg-panel p-[3px]">
@@ -36,7 +41,7 @@ export function Header() {
                 type="button"
                 disabled
                 title={`${label} — coming soon`}
-                className="cursor-not-allowed rounded-full px-3 py-1.5 text-[12px] text-ink-ghost"
+                className="cursor-not-allowed rounded-full px-2.5 py-1.5 text-[12px] whitespace-nowrap text-ink-ghost min-[560px]:px-3"
               >
                 {label}
               </button>
@@ -48,7 +53,7 @@ export function Header() {
               key={label}
               href={href}
               aria-current={active ? "page" : undefined}
-              className={`rounded-full px-[14px] py-1.5 text-[12px] transition-colors ${
+              className={`rounded-full px-3 py-1.5 text-[12px] whitespace-nowrap transition-colors min-[560px]:px-[14px] ${
                 active
                   ? "bg-accent-bg font-medium text-accent"
                   : "text-ink-muted hover:text-ink"

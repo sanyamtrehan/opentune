@@ -173,28 +173,13 @@ export function InfoPane({ chord, analysis, pro, spelling }: InfoPaneProps) {
       // Sized to its content: stretching it to the row height left a mostly
       // empty sheet the height of the diagram, which read as a rendering
       // fault rather than as a note.
-      className="sticky-note w-full p-5 text-[13px] leading-relaxed min-[900px]:sticky min-[900px]:top-2 min-[900px]:p-6 min-[900px]:pb-9 min-[900px]:text-[15px]"
+      className="sticky-note w-full p-4 text-[13px] leading-relaxed min-[900px]:sticky min-[900px]:top-2 min-[900px]:p-6 min-[900px]:pb-9 min-[900px]:text-[15px]"
     >
       <span aria-hidden="true" className="sticky-tape" />
 
-      <h2 className="mb-3 text-[10px] tracking-[0.18em] text-paper-ink-muted uppercase">
+      <h2 className="mb-2 text-[10px] tracking-[0.18em] text-paper-ink-muted uppercase min-[900px]:mb-3">
         What you are holding
       </h2>
-
-      {/* Said before the theory, because it changes what the theory is
-          about: the notes below are the chord's, and the slash names one
-          more that has to sit under them. */}
-      {chord.bass && (
-        <p className="mb-3 text-paper-ink">
-          <strong className="font-medium">{chord.symbol}</strong> is{" "}
-          {rootName(respell(chord.root, spelling))}
-          {chord.quality === "major" ? " major" : ""} with{" "}
-          {show(chord.bass)} underneath.{" "}
-          {inChord(chord, chord.bass)
-            ? "The bass is a note the chord already has, so this is an inversion — the same chord, stood on a different foot."
-            : "The bass is not in the chord, so this is not an inversion: it is the chord with a foreign note put under it."}
-        </p>
-      )}
 
       <dl className="flex flex-col gap-3">
         <div>
@@ -215,6 +200,24 @@ export function InfoPane({ chord, analysis, pro, spelling }: InfoPaneProps) {
             )}
           </dd>
         </div>
+
+        {/* Directly under the notes, because it is about them: the list
+            is the chord's own notes and the slash names one more that has
+            to sit beneath them. It used to open the note, which put it
+            above the list — fine on a desk, wrong on a phone, where the
+            first inch of the note is all that shows until you pull it up,
+            and the notes are what that inch is for. */}
+        {chord.bass && (
+          <p className="text-paper-ink">
+            <strong className="font-medium">{chord.symbol}</strong> is{" "}
+            {rootName(respell(chord.root, spelling))}
+            {chord.quality === "major" ? " major" : ""} with{" "}
+            {show(chord.bass)} underneath.{" "}
+            {inChord(chord, chord.bass)
+              ? "The bass is a note the chord already has, so this is an inversion — the same chord, stood on a different foot."
+              : "The bass is not in the chord, so this is not an inversion: it is the chord with a foreign note put under it."}
+          </p>
+        )}
 
         {!pro && (
           <p className="text-paper-ink-muted">

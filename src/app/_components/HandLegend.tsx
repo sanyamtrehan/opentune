@@ -105,7 +105,7 @@ export function HandLegend({ used }: HandLegendProps) {
     <figure className="flex flex-none flex-col items-center gap-1">
       <svg
         viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
-        className="h-[76px] w-auto min-[900px]:h-[96px]"
+        className="h-[58px] w-auto min-[900px]:h-[96px]"
         role="img"
         aria-label={FINGERS.map(
           ({ finger }) =>

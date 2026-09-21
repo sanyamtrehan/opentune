@@ -93,15 +93,16 @@ export function PositionSlider({ items, index, onChange, label }: PositionSlider
   };
 
   return (
-    <div className="flex w-full flex-col items-center gap-3">
-      <div className="flex w-full items-center justify-center gap-1 min-[900px]:gap-3">
-        <Arrow
-          direction="previous"
-          disabled={index === 0}
-          onClick={() => move(-1)}
-          hidden={count < 2}
-        />
+    <div className="position-slider w-full">
+      <Arrow
+        area="ps-prev"
+        direction="previous"
+        disabled={index === 0}
+        onClick={() => move(-1)}
+        hidden={count < 2}
+      />
 
+      <div className="ps-view">
         <div
           ref={viewport}
           role="group"
@@ -122,12 +123,12 @@ export function PositionSlider({ items, index, onChange, label }: PositionSlider
            * which looks broken. `touch-pan-y` so a vertical swipe with the
            * same finger still scrolls the page.
            */
-          className={`w-full max-w-[260px] flex-none touch-pan-y overflow-hidden rounded-xl select-none outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent min-[900px]:max-w-[460px] ${
+          className={`ps-viewport mx-auto w-full touch-pan-y overflow-hidden rounded-xl select-none outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent min-[900px]:max-w-[460px] ${
             count > 1 ? (dragging ? "cursor-grabbing" : "cursor-grab") : ""
           }`}
         >
           <div
-            className="flex"
+            className="ps-track flex"
             style={{
               transform: `translateX(calc(${-index * 100}% + ${drag}px))`,
               transition: dragging
@@ -139,7 +140,7 @@ export function PositionSlider({ items, index, onChange, label }: PositionSlider
               <div
                 key={i}
                 aria-hidden={i !== index}
-                className="w-full shrink-0"
+                className="ps-item flex w-full shrink-0 items-center justify-center"
                 // Neighbours are visible at the edge of the window while
                 // dragging; dimming them keeps the current one the subject.
                 style={{
@@ -152,17 +153,18 @@ export function PositionSlider({ items, index, onChange, label }: PositionSlider
             ))}
           </div>
         </div>
-
-        <Arrow
-          direction="next"
-          disabled={index === count - 1}
-          onClick={() => move(1)}
-          hidden={count < 2}
-        />
       </div>
 
+      <Arrow
+        area="ps-next"
+        direction="next"
+        disabled={index === count - 1}
+        onClick={() => move(1)}
+        hidden={count < 2}
+      />
+
       {count > 1 && (
-        <div className="flex items-center gap-2">
+        <div className="ps-dots flex items-center">
           {items.map((_, i) => (
             <button
               key={i}
@@ -170,10 +172,19 @@ export function PositionSlider({ items, index, onChange, label }: PositionSlider
               aria-label={`Position ${i + 1}`}
               aria-pressed={i === index}
               onClick={() => onChange(i)}
-              className={`h-2.5 cursor-pointer rounded-full transition-all ${
-                i === index ? "w-7 bg-accent" : "w-2.5 bg-edge-strong hover:bg-ink-faint"
-              }`}
-            />
+              // The dot is 10px; the button around it is 28 by 24, because
+              // a thumb is not a mouse pointer and these sit under the
+              // diagram where one will be.
+              className="group flex h-6 w-5 cursor-pointer items-center justify-center"
+            >
+              <span
+                className={`block h-2.5 rounded-full transition-all ${
+                  i === index
+                    ? "w-7 bg-accent"
+                    : "w-2.5 bg-edge-strong group-hover:bg-ink-faint"
+                }`}
+              />
+            </button>
           ))}
         </div>
       )}
@@ -182,11 +193,13 @@ export function PositionSlider({ items, index, onChange, label }: PositionSlider
 }
 
 function Arrow({
+  area,
   direction,
   disabled,
   hidden,
   onClick,
 }: {
+  area: "ps-prev" | "ps-next";
   direction: "previous" | "next";
   disabled: boolean;
   hidden: boolean;
@@ -199,7 +212,7 @@ function Arrow({
       onClick={onClick}
       disabled={disabled}
       aria-label={`${next ? "Next" : "Previous"} position`}
-      className={`flex h-10 w-10 flex-none cursor-pointer items-center justify-center rounded-full border border-edge bg-panel text-ink-muted transition-colors hover:border-accent-edge hover:text-accent disabled:cursor-default disabled:border-transparent disabled:bg-transparent disabled:text-ink-ghost ${
+      className={`${area} flex h-10 w-10 flex-none cursor-pointer items-center justify-center rounded-full border border-edge bg-panel text-ink-muted transition-colors hover:border-accent-edge hover:text-accent disabled:cursor-default disabled:border-transparent disabled:bg-transparent disabled:text-ink-ghost ${
         hidden ? "invisible" : ""
       }`}
     >
