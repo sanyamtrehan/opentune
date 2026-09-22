@@ -16,10 +16,11 @@
  * in the place you were looking.
  */
 
-import { baseFret } from "@/core/chords/positions.ts";
+import { baseFret, fretRows } from "@/core/chords/positions.ts";
 import type { ChordShape, Finger } from "@/core/chords/shapes.ts";
 
-const VIEW_HEIGHT = 250;
+/** Room under the board, so the last fret line is not the edge of the box. */
+const BOARD_BOTTOM_PAD = 22;
 
 /** Room on the left for the fret numbers. */
 const NUMBER_X = 14;
@@ -27,13 +28,11 @@ const NUMBER_X = 14;
 const STRING_X = [48, 84, 120, 156, 192, 228];
 const NUT_Y = 44;
 const FRET_GAP = 46;
-const FRET_COUNT = 4;
-
 /** The board extends past the outer strings, as a real fretboard does. */
 const BOARD_PAD = 16;
 const BOARD_X = STRING_X[0] - BOARD_PAD;
 const BOARD_WIDTH = STRING_X[5] - STRING_X[0] + BOARD_PAD * 2;
-const BOARD_HEIGHT = FRET_COUNT * FRET_GAP;
+
 
 /*
  * The box is as wide as the board plus an equal margin either side, rather
@@ -86,10 +85,16 @@ export function ChordDiagram({ shape, noteNames }: ChordDiagramProps) {
   const base = baseFret(shape);
   const atNut = base === 1;
   const rowFor = (fret: number) => NUT_Y + (fret - base + 0.5) * FRET_GAP;
-  // Fixed height: the open-string names sit inside their own markers now, so
-  // nothing about the geometry changes between modes and the diagram cannot
-  // shift under someone reading it.
-  const height = VIEW_HEIGHT;
+
+  /*
+   * Four fret rows, or five for the shapes that reach. The box grows with
+   * them rather than the dots being drawn past the end of the board; the
+   * SVG keeps its proportions inside whatever it is given, so a five-row
+   * diagram simply comes out a little smaller.
+   */
+  const rows = fretRows(shape);
+  const boardHeight = rows * FRET_GAP;
+  const height = NUT_Y + boardHeight + BOARD_BOTTOM_PAD;
 
   return (
     <svg
@@ -153,7 +158,7 @@ export function ChordDiagram({ shape, noteNames }: ChordDiagramProps) {
         x={BOARD_X}
         y={NUT_Y}
         width={BOARD_WIDTH}
-        height={BOARD_HEIGHT}
+        height={boardHeight}
         rx="7"
         fill="var(--color-board-face)"
       />
@@ -180,7 +185,7 @@ export function ChordDiagram({ shape, noteNames }: ChordDiagramProps) {
         />
       )}
 
-      {Array.from({ length: FRET_COUNT }, (_, i) => (
+      {Array.from({ length: rows }, (_, i) => (
         <line
           key={i}
           x1={BOARD_X}
@@ -195,7 +200,7 @@ export function ChordDiagram({ shape, noteNames }: ChordDiagramProps) {
       {/* Fret numbers. Every shape here starts at the nut, so they are
           always 1 to 4 — but a barre shape further up the neck will need
           them to say which frets these are, and the space is reserved now. */}
-      {Array.from({ length: FRET_COUNT }, (_, i) => (
+      {Array.from({ length: rows }, (_, i) => (
         <text
           key={i}
           x={NUMBER_X}
@@ -215,7 +220,7 @@ export function ChordDiagram({ shape, noteNames }: ChordDiagramProps) {
           x1={x}
           y1={NUT_Y}
           x2={x}
-          y2={NUT_Y + BOARD_HEIGHT}
+          y2={NUT_Y + boardHeight}
           stroke="var(--color-string)"
           // Wound strings are visibly thicker; low E on the left.
           strokeWidth={3.4 - index * 0.32}
@@ -233,7 +238,7 @@ export function ChordDiagram({ shape, noteNames }: ChordDiagramProps) {
             x1={STRING_X[index]}
             y1={NUT_Y}
             x2={STRING_X[index]}
-            y2={NUT_Y + BOARD_HEIGHT}
+            y2={NUT_Y + boardHeight}
             stroke="var(--color-muted-string)"
             strokeWidth={3.4 - index * 0.32}
             strokeLinecap="round"

@@ -11,7 +11,7 @@ import { formatNote, midiOf } from "../music/notes.ts";
 import { findPreset } from "../tunings/presets.ts";
 import { resolveShape } from "../tunings/resolve.ts";
 import { analyseShape } from "./analysis.ts";
-import { baseFret, lowestFret, positionsFor } from "./positions.ts";
+import { baseFret, fretRows, lowestFret, positionsFor } from "./positions.ts";
 import type { ChordShape } from "./shapes.ts";
 
 const standard = resolveShape(findPreset("standard")!).strings;
@@ -195,4 +195,39 @@ test("the diagram starts at the nut only when the shape does", () => {
   const [open, aShape] = positionsFor(0, "major", standard);
   assert.equal(baseFret(open), 1, "the open C draws from the nut");
   assert.equal(baseFret(aShape), 3, "the barre at the 3rd draws from the 3rd");
+});
+
+test("an open string puts the shape at the nut, whatever its lowest fret", () => {
+  /*
+   * Em is 022000 and its lowest fretted note is the 2nd fret, but it is an
+   * open chord and belongs against the nut. Reading the frets alone filed
+   * Em, A, D and G two frets up the neck from where they are played.
+   */
+  for (const [pitchClass, quality] of [
+    [4, "minor"],
+    [9, "major"],
+    [2, "major"],
+    [7, "major"],
+  ] as const) {
+    const shape = positionsFor(pitchClass, quality, standard)[0];
+    assert.ok(shape.frets.includes(0), `${shape.id} should be an open shape`);
+    assert.equal(baseFret(shape), 1, `${shape.id} should draw from the nut`);
+  }
+});
+
+test("the diagram is given enough fret rows for the shape it draws", () => {
+  for (const { pitchClass, quality } of everyChord()) {
+    for (const shape of positionsFor(pitchClass, quality, standard)) {
+      const base = baseFret(shape);
+      const rows = fretRows(shape);
+      assert.ok(rows >= 4, `${shape.id} asks for ${rows} rows`);
+      for (const fret of shape.frets) {
+        if (fret === "muted" || fret === 0) continue;
+        assert.ok(
+          fret >= base && fret <= base + rows - 1,
+          `${shape.id} puts a dot at fret ${fret}, outside rows ${base}-${base + rows - 1}`,
+        );
+      }
+    }
+  }
 });

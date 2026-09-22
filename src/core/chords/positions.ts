@@ -31,10 +31,34 @@ export function lowestFret(frets: FretPosition[]): number {
  * Shapes at the nut draw from it. Anything higher drops the nut and labels
  * the top fret, which is what a chord book does — the alternative is a
  * diagram fifty frets tall.
+ *
+ * An open string settles it on its own, whatever the lowest fretted note
+ * is. This used to look only at the frets, so Em — 022000 — was drawn
+ * starting at the 2nd fret with the nut dropped, and so were A, D and G.
+ * Four of the first chords anybody learns, all filed two frets up the
+ * neck from where they are played.
  */
 export function baseFret(shape: ChordShape): number {
+  if (shape.frets.includes(0)) return 1;
   const lowest = lowestFret(shape.frets);
   return lowest <= 1 ? 1 : lowest;
+}
+
+/**
+ * How many frets the diagram has to show.
+ *
+ * Four is the usual window and covers all but about one shape in twelve.
+ * The rest are the ones that reach: a stretched altered chord, or an open
+ * string still ringing under a hand at the 5th fret. Those get a fifth
+ * row rather than a dot drawn off the end of the board.
+ */
+export function fretRows(shape: ChordShape): number {
+  const base = baseFret(shape);
+  const fretted = shape.frets.filter(
+    (fret): fret is number => fret !== "muted" && fret > 0,
+  );
+  if (fretted.length === 0) return 4;
+  return Math.max(4, Math.max(...fretted) - base + 1);
 }
 
 /** How many strings a shape actually sounds. */
