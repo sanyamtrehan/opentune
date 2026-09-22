@@ -124,12 +124,40 @@ test("a pitch outside the chord is reported as such, not guessed at", () => {
 });
 
 test("roots are named the way guitarists name them", () => {
-  const names = Array.from({ length: 12 }, (_, pitchClass) =>
-    rootName(rootFromPitchClass(pitchClass)),
-  );
-  assert.deepEqual(names, [
-    "C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B",
-  ]);
+  const names = (keyQuality: "major" | "minor") =>
+    Array.from({ length: 12 }, (_, pitchClass) =>
+      rootName(rootFromPitchClass(pitchClass, 4, "conventional", keyQuality)),
+    ).join(" ");
+
+  /*
+   * Two of the twelve name themselves differently either side of the
+   * major/minor line, because that is where the accidental count flips:
+   * D♭ major is five flats against C♯ major's seven sharps, and G♯ minor
+   * is five sharps against A♭ minor's seven flats. The other ten agree
+   * with themselves.
+   */
+  assert.equal(names("major"), "C D♭ D E♭ E F F♯ G A♭ A B♭ B");
+  assert.equal(names("minor"), "C C♯ D E♭ E F F♯ G G♯ A B♭ B");
+});
+
+test("the key that E♯ came from is named the way it is actually written", () => {
+  /*
+   * The bug this fixes. E♯ is a real name — it is what the F pitch is
+   * called once a scale has spent its F elsewhere — and C♯ major really
+   * is C♯ D♯ E♯ F♯ G♯ A♯ B♯, all seven sharps. But nobody writes that key,
+   * and Auto is supposed to pick the name a chart would print.
+   */
+  const major = buildChord(rootFromPitchClass(1, 4, "conventional", "major"), "major");
+  assert.equal(major.symbol, "D♭");
+  assert.deepEqual(major.tones.map((tone) => rootName(tone.note)), ["D♭", "F", "A♭"]);
+
+  // Minor keeps the sharps, because there C♯ is the shorter spelling.
+  const minor = buildChord(rootFromPitchClass(1, 4, "conventional", "minor"), "minor");
+  assert.equal(minor.symbol, "C♯m");
+
+  // Forcing sharps still gives the honest seven-sharp answer.
+  const forced = buildChord(rootFromPitchClass(1, 4, "sharp"), "major");
+  assert.deepEqual(forced.tones.map((tone) => rootName(tone.note)), ["C♯", "E♯", "G♯"]);
 });
 
 test("roots can be forced to sharps or flats", () => {
@@ -138,7 +166,7 @@ test("roots can be forced to sharps or flats", () => {
       rootName(rootFromPitchClass(pitchClass, 4, spelling)),
     ).join(" ");
 
-  assert.equal(names("conventional"), "C C♯ D E♭ E F F♯ G A♭ A B♭ B");
+  assert.equal(names("conventional"), "C D♭ D E♭ E F F♯ G A♭ A B♭ B");
   assert.equal(names("sharp"), "C C♯ D D♯ E F F♯ G G♯ A A♯ B");
   assert.equal(names("flat"), "C D♭ D E♭ E F G♭ G A♭ A B♭ B");
 });

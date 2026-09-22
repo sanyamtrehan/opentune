@@ -379,11 +379,35 @@ export function toneAt(chord: Chord, midi: number): ChordTone | null {
  */
 export type RootSpelling = "conventional" | "sharp" | "flat";
 
-const ROOT_NAMES: Record<RootSpelling, ReadonlyArray<readonly [Letter, -1 | 0 | 1]>> = {
-  conventional: [
-    ["C", 0], ["C", 1], ["D", 0], ["E", -1], ["E", 0], ["F", 0],
+/**
+ * Which name needs fewest accidentals depends on the key, and the key
+ * depends on the quality — so `conventional` has two rows, not one.
+ *
+ * Two pitches disagree with themselves. The black key above C is D♭ as a
+ * major key (five flats) and C♯ as a minor one (four sharps); the black
+ * key above G is A♭ major (four flats) and G♯ minor (five sharps). Every
+ * other pitch names itself the same way either side.
+ *
+ * This is what stopped C♯ major appearing with an E♯ in it. E♯ is a real
+ * name — it is what the F pitch is called when a scale has already spent
+ * its F on something else, and C♯ major genuinely is C♯ D♯ E♯ F♯ G♯ A♯ B♯,
+ * all seven sharps. But nobody writes that key. They write D♭ major, which
+ * is five flats and whose third is a plain F, and the old table's single
+ * row could not say so.
+ */
+const CONVENTIONAL: Record<"major" | "minor", ReadonlyArray<readonly [Letter, -1 | 0 | 1]>> = {
+  major: [
+    ["C", 0], ["D", -1], ["D", 0], ["E", -1], ["E", 0], ["F", 0],
     ["F", 1], ["G", 0], ["A", -1], ["A", 0], ["B", -1], ["B", 0],
   ],
+  minor: [
+    ["C", 0], ["C", 1], ["D", 0], ["E", -1], ["E", 0], ["F", 0],
+    ["F", 1], ["G", 0], ["G", 1], ["A", 0], ["B", -1], ["B", 0],
+  ],
+};
+
+const ROOT_NAMES: Record<RootSpelling, ReadonlyArray<readonly [Letter, -1 | 0 | 1]>> = {
+  conventional: CONVENTIONAL.major,
   sharp: [
     ["C", 0], ["C", 1], ["D", 0], ["D", 1], ["E", 0], ["F", 0],
     ["F", 1], ["G", 0], ["G", 1], ["A", 0], ["A", 1], ["B", 0],
@@ -402,13 +426,18 @@ const ROOT_NAMES: Record<RootSpelling, ReadonlyArray<readonly [Letter, -1 | 0 | 
  * D♯ major as D♯ F𝄪 A♯ — the third of a D♯ chord has to be some kind of F,
  * and the F that sounds right is a double sharp. That is the honest answer,
  * and the reason the conventional naming calls that key E♭ instead.
+ *
+ * `keyQuality` only matters under `conventional`, and only for two of the
+ * twelve pitches. Forced sharps or flats do not care what key it is.
  */
 export function rootFromPitchClass(
   pitchClass: number,
   octave = 4,
   spelling: RootSpelling = "conventional",
+  keyQuality: "major" | "minor" = "major",
 ): Note {
-  const [letter, accidental] = ROOT_NAMES[spelling][((pitchClass % 12) + 12) % 12];
+  const names = spelling === "conventional" ? CONVENTIONAL[keyQuality] : ROOT_NAMES[spelling];
+  const [letter, accidental] = names[((pitchClass % 12) + 12) % 12];
   const midi = (octave + 1) * 12 + letterSemitones(letter) + accidental;
   return spellAs(midi, letter);
 }

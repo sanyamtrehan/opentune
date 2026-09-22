@@ -25,11 +25,19 @@ export interface BassPickerProps {
   /** Pitch class of the note under the chord, or null for no slash. */
   bass: number | null;
   spelling: RootSpelling;
+  /** The key the chord is read against, which names two of the twelve. */
+  keyQuality: "major" | "minor";
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function BassPicker({ bass, spelling, open, onOpenChange }: BassPickerProps) {
+export function BassPicker({
+  bass,
+  spelling,
+  keyQuality,
+  open,
+  onOpenChange,
+}: BassPickerProps) {
   return (
     <button
       type="button"
@@ -46,7 +54,7 @@ export function BassPicker({ bass, spelling, open, onOpenChange }: BassPickerPro
       {bass === null ? (
         <span className="text-ink-faint">bass</span>
       ) : (
-        nameOf(bass, spelling)
+        nameOf(bass, spelling, keyQuality)
       )}
     </button>
   );
@@ -56,11 +64,13 @@ export function BassPanel({
   bass,
   onChange,
   spelling,
+  keyQuality,
   onClose,
 }: {
   bass: number | null;
   onChange: (bass: number | null) => void;
   spelling: RootSpelling;
+  keyQuality: "major" | "minor";
   onClose: () => void;
 }) {
   const choose = (value: number | null) => {
@@ -90,7 +100,7 @@ export function BassPanel({
             onClick={() => choose(pitchClass)}
             className={`${chipClass(bass === pitchClass)} min-w-[46px] font-mono`}
           >
-            {nameOf(pitchClass, spelling)}
+            {nameOf(pitchClass, spelling, keyQuality)}
           </button>
         ))}
       </div>
@@ -111,5 +121,11 @@ const chipClass = (on: boolean) =>
       : "border-edge bg-ground text-ink hover:border-accent-edge hover:text-accent-bright"
   }`;
 
-const nameOf = (pitchClass: number, spelling: RootSpelling) =>
-  rootName(respell(rootFromPitchClass(pitchClass, 3, spelling), spelling));
+const nameOf = (
+  pitchClass: number,
+  spelling: RootSpelling,
+  keyQuality: "major" | "minor",
+) =>
+  rootName(
+    respell(rootFromPitchClass(pitchClass, 3, spelling, keyQuality), spelling),
+  );

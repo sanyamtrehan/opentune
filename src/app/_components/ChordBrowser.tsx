@@ -45,7 +45,7 @@ const STANDARD = resolveShape(findPreset("standard")!).strings;
  * or the other throughout.
  */
 const SPELLINGS: ReadonlyArray<{ value: RootSpelling; label: string; hint: string }> = [
-  { value: "conventional", label: "Auto", hint: "The usual mix: E♭ but C♯" },
+  { value: "conventional", label: "Auto", hint: "Whichever name the key needs fewest accidentals for: E♭, but C♯ minor and D♭ major" },
   { value: "sharp", label: "♯", hint: "Sharps throughout: E♭ becomes D♯" },
   { value: "flat", label: "♭", hint: "Flats throughout: C♯ becomes D♭" },
 ];
@@ -63,10 +63,18 @@ export function ChordBrowser() {
   // where it is simply beside the diagram.
   const [noteUp, setNoteUp] = useState(false);
 
-  // Only the root's name is chosen; every other note follows from it by
-  // letter-stepping, so the whole chord and the whole key change together.
-  const root = rootFromPitchClass(rootPitchClass, 4, spelling);
-  const bassNote = bass === null ? null : rootFromPitchClass(bass, 3, spelling);
+  /*
+   * Only the root's name is chosen; every other note follows from it by
+   * letter-stepping, so the whole chord and the whole key change together.
+   *
+   * The quality is part of choosing it. Under Auto the black key above C
+   * is D♭ in a major key and C♯ in a minor one, because that is which way
+   * round needs fewer accidentals — and it is the difference between a
+   * third of F and a third of E♯.
+   */
+  const key = keyQualityOf(quality);
+  const root = rootFromPitchClass(rootPitchClass, 4, spelling, key);
+  const bassNote = bass === null ? null : rootFromPitchClass(bass, 3, spelling, key);
   const chord = buildChord(root, quality, bassNote);
 
   const positions = useMemo(
@@ -105,7 +113,7 @@ export function ChordBrowser() {
                     : "text-ink hover:text-accent-bright"
                 }`}
               >
-                {rootName(rootFromPitchClass(pitchClass, 4, spelling))}
+                {rootName(rootFromPitchClass(pitchClass, 4, spelling, key))}
               </button>
             );
           })}
@@ -160,6 +168,7 @@ export function ChordBrowser() {
           <BassPicker
             bass={bass}
             spelling={spelling}
+            keyQuality={key}
             open={panel === "bass"}
             onOpenChange={(open) => setPanel(open ? "bass" : null)}
           />
@@ -199,6 +208,7 @@ export function ChordBrowser() {
           bass={bass}
           onChange={setBass}
           spelling={spelling}
+          keyQuality={key}
           onClose={() => setPanel(null)}
         />
       )}
@@ -209,7 +219,7 @@ export function ChordBrowser() {
           minor one. */}
       <ScaleRow
         tonic={root}
-        quality={keyQualityOf(quality)}
+        quality={key}
         spelling={spelling}
         chord={chord}
       />
