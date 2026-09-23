@@ -26,74 +26,36 @@ import type { Finger } from "@/core/chords/shapes.ts";
 const VIEW_WIDTH = 178.012;
 const VIEW_HEIGHT = 281.509;
 
-/** Where the knuckles are: colour runs from the fingertip down to here. */
-const KNUCKLE_Y = 116;
-
 /**
- * One wedge per finger, following how the fingers splay.
+ * One shape per finger, traced against the artwork.
  *
  * Straight vertical columns do not work: the fingers fan outwards, so a box
  * wide enough to cover the ring finger at its tip also overlaps the little
- * finger lower down, and the colour bleeds from one to the next. Each wedge
- * is narrower at the knuckle and tracks its own finger's angle, and is
- * intersected with the hand body so it can only ever paint inside the
- * silhouette.
+ * finger lower down, and the colour bleeds from one to the next. Each shape
+ * follows its own finger's angle instead, and is intersected with the hand
+ * body so it can only ever paint inside the silhouette — the tint stops
+ * exactly where the finger does, following the real outline rather than a
+ * capsule pretending to be one.
+ *
+ * These used to be generated: four corners per finger and a function that
+ * built the path, with a shared knuckle line and a curve bowed a fixed
+ * distance below it. That was tidy and slightly wrong everywhere, because
+ * the fingers on this particular drawing are not a tidy family — they start
+ * at different heights, lean at different angles, and the middle finger is
+ * much wider at the tip than the formula would allow. So they are now
+ * written out, each one adjusted against the drawing until it fitted.
+ *
+ * Coordinates are the artwork's own, before the mirror below.
  */
 const FINGERS: ReadonlyArray<{
   finger: Exclude<Finger, null>;
-  /** Tip corners then knuckle corners, clockwise. */
-  wedge: [number, number][];
+  path: string;
 }> = [
-  {
-    finger: 4,
-    wedge: [
-      [4, 38],
-      [35, 38],
-      [37, KNUCKLE_Y],
-      [10, KNUCKLE_Y],
-    ],
-  },
-  {
-    finger: 3,
-    wedge: [
-      [38, 10],
-      [65, 10],
-      [63, KNUCKLE_Y],
-      [39, KNUCKLE_Y],
-    ],
-  },
-  {
-    finger: 2,
-    wedge: [
-      [70, -6],
-      [101, -6],
-      [92, KNUCKLE_Y],
-      [66, KNUCKLE_Y],
-    ],
-  },
-  {
-    finger: 1,
-    wedge: [
-      [104, 8],
-      [136, 8],
-      [126, KNUCKLE_Y],
-      [95, KNUCKLE_Y],
-    ],
-  },
+  { finger: 4, path: "M -1 42 L 40 41 L 46 121 Q 28.5 138 7 120 Z" },
+  { finger: 3, path: "M 29 15 L 70 17 L 72 113 Q 57 130 39 112 Z" },
+  { finger: 2, path: "M 70 -1 L 156 7 L 96 114 Q 82 122 74 111 Z" },
+  { finger: 1, path: "M 104 8 L 136 8 L 126 112 Q 107.5 126 101 109 Z" },
 ];
-
-function wedgePath(points: [number, number][], bottom: number): string {
-  const [tipLeft, tipRight, baseRight, baseLeft] = points;
-  return [
-    `M ${tipLeft[0]} ${tipLeft[1]}`,
-    `L ${tipRight[0]} ${tipRight[1]}`,
-    `L ${baseRight[0]} ${baseRight[1] - 4}`,
-    // Curved along the bottom: knuckles are not a straight line across, and
-    // a flat edge reads as the colour being cut off rather than ending.
-    `Q ${(baseLeft[0] + baseRight[0]) / 2} ${bottom + 9} ${baseLeft[0]} ${baseLeft[1] - 4}`,
-    "Z",
-  ].join(" ");
-}
 
 export interface HandLegendProps {
   /** Fingers this shape uses. The rest stay neutral. */
@@ -116,26 +78,22 @@ export function HandLegend({ used }: HandLegendProps) {
       >
         {/* Mirrored, so the fingers run the same way as the strings do. */}
         <g transform={`translate(${VIEW_WIDTH} 0) scale(-1 1)`}>
-        <defs>
-          <clipPath id="ot-hand-body">
-            <path d={HAND_BODY} />
-          </clipPath>
-        </defs>
+          <defs>
+            <clipPath id="ot-hand-body">
+              <path d={HAND_BODY} />
+            </clipPath>
+          </defs>
 
-        <path d={HAND_SHADOW} fill="var(--color-edge-strong)" />
-        <path d={HAND_BODY} fill="var(--color-panel-raised)" />
+          <path d={HAND_SHADOW} fill="var(--color-edge-strong)" />
+          <path d={HAND_BODY} fill="var(--color-panel-raised)" />
 
-        <g clipPath="url(#ot-hand-body)">
-          {FINGERS.filter(({ finger }) => used.includes(finger)).map(
-            ({ finger, wedge }) => (
-              <path
-                key={finger}
-                d={wedgePath(wedge, KNUCKLE_Y)}
-                fill={FINGER_COLOURS[finger]}
-              />
-            ),
-          )}
-        </g>
+          <g clipPath="url(#ot-hand-body)">
+            {FINGERS.filter(({ finger }) => used.includes(finger)).map(
+              ({ finger, path }) => (
+                <path key={finger} d={path} fill={FINGER_COLOURS[finger]} />
+              ),
+            )}
+          </g>
         </g>
       </svg>
       <figcaption className="label-caps">fingers</figcaption>
