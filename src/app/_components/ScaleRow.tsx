@@ -28,7 +28,8 @@
  * centimetres below. Coral clears that and the red of a muted string.
  */
 
-import { diatonicChords } from "@/core/music/scales.ts";
+import { SCALES, diatonicChords } from "@/core/music/scales.ts";
+import type { ScaleName } from "@/core/music/scales.ts";
 import type { Chord, RootSpelling } from "@/core/music/chords.ts";
 import { respell, rootName } from "@/core/music/chords.ts";
 import { midiOf } from "@/core/music/notes.ts";
@@ -36,8 +37,9 @@ import type { Note } from "@/core/music/types.ts";
 
 export interface ScaleRowProps {
   tonic: Note;
-  /** Major or minor key — the toggle's two options. */
-  quality: "major" | "minor";
+  /** The key's scale. The chord browser's toggle only offers two of them,
+      but the row renders whatever `diatonicChords` can return. */
+  scale: ScaleName;
   spelling: RootSpelling;
   /** The chord on screen, so its notes can be picked out of the key. */
   chord: Chord;
@@ -45,14 +47,15 @@ export interface ScaleRowProps {
 
 const pitchClass = (note: Note) => ((midiOf(note) % 12) + 12) % 12;
 
-export function ScaleRow({ tonic, quality, spelling, chord }: ScaleRowProps) {
-  const chords = diatonicChords(tonic, quality);
+export function ScaleRow({ tonic, scale, spelling, chord }: ScaleRowProps) {
+  const chords = diatonicChords(tonic, scale);
   const inChord = new Set(chord.tones.map((tone) => pitchClass(tone.note)));
 
   return (
     <section
       aria-label={
-        `Chords in the key of ${rootName(respell(tonic, spelling))} ${quality}. ` +
+        `Chords in the key of ${rootName(respell(tonic, spelling))} ` +
+        `${SCALES[scale].name.toLowerCase()}. ` +
         `Highlighted: built on the notes of ${chord.symbol}.`
       }
       className="mx-auto w-full max-w-[1240px] flex-none overflow-x-auto px-[clamp(16px,4vw,28px)] pb-3"
@@ -93,7 +96,9 @@ export function ScaleRow({ tonic, quality, spelling, chord }: ScaleRowProps) {
                 ? "m"
                 : entry.chord.quality === "diminished"
                   ? "°"
-                  : ""}
+                  : entry.chord.quality === "augmented"
+                    ? "+"
+                    : ""}
             </span>
           </div>
           );

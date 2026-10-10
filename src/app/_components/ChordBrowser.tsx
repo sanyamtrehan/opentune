@@ -219,7 +219,7 @@ export function ChordBrowser() {
           minor one. */}
       <ScaleRow
         tonic={root}
-        quality={key}
+        scale={key}
         spelling={spelling}
         chord={chord}
       />
@@ -266,7 +266,7 @@ export function ChordBrowser() {
         * window. `safe` falls back to top-aligned the moment it would not
         * fit.
         */}
-      <main className="chord-stage mx-auto flex min-h-0 w-full max-w-[1240px] flex-1 flex-col gap-y-6 overflow-y-auto px-[clamp(16px,4vw,40px)] pb-[max(14px,env(safe-area-inset-bottom))] min-[900px]:grid min-[900px]:grid-cols-[minmax(0,1fr)_380px] min-[900px]:[align-content:safe_center] min-[900px]:items-start min-[900px]:gap-x-[clamp(1.5rem,4vw,3.5rem)] min-[900px]:gap-y-8 min-[900px]:overflow-y-auto min-[900px]:pt-2 min-[900px]:pb-[max(14px,env(safe-area-inset-bottom))]">
+      <main className="note-stage mx-auto flex min-h-0 w-full max-w-[1240px] flex-1 flex-col gap-y-6 overflow-y-auto px-[clamp(16px,4vw,40px)] pb-[max(14px,env(safe-area-inset-bottom))] min-[900px]:grid min-[900px]:grid-cols-[minmax(0,1fr)_380px] min-[900px]:[align-content:safe_center] min-[900px]:items-start min-[900px]:gap-x-[clamp(1.5rem,4vw,3.5rem)] min-[900px]:gap-y-8 min-[900px]:overflow-y-auto min-[900px]:pt-2 min-[900px]:pb-[max(14px,env(safe-area-inset-bottom))]">
         {/* No `min-h-0` on this column or the one inside it. That looks
             like the usual incantation for a shrinking flex child, and here
             it is the bug: it lets the column collapse past the diagram's

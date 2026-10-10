@@ -43,9 +43,29 @@ is *the* C major. Anything added to the vocabulary gets shapes for free; what
 it needs instead is a test, and `voicings.test.ts` checks every claim on
 every chord the generator can produce.
 
+**Also since added to v1:** scale shapes on the neck, for nine scales — major,
+minor, the other five modes, and harmonic and melodic minor. Each is a row of
+seven steps in `core/music/scales.ts` and nothing else; `scaleNotes` was
+already generic over any seven-step scale, so the modes cost a table. What
+they did cost is `scaleRoot`, because the root's name depends on the scale —
+pitch class 1 is D♭ in major and C♯ in Phrygian, since D♭ Phrygian needs two
+double flats. That rule counts accidentals rather than reading a table, and
+for major and minor it reproduces the conventional key names exactly, all
+twenty-four.
+
+The scales page carries the chord page's Pro note — the same sheet of paper,
+the same bargain. It leads with the *parallel* view ("D Dorian is D minor with
+the 6th raised: B where D minor has B♭") and keeps the relative view for the
+section on finding the shape, because a player taught only the relative one
+plays the parent major scale and wonders why it does not sound Dorian.
+
 **Still explicitly deferred:** 7/8-string, bass, ukulele, other instruments;
-pentatonics and scale shapes on the neck; song-to-tuning lookup; play-along /
-playthrough.
+pentatonics; song-to-tuning lookup; play-along / playthrough.
+
+Pentatonics stay deferred for a reason that is not effort. `scaleNotes` spells
+one degree per letter and there are seven letters, so a five-note scale has no
+letter-per-degree spelling to find, and `diatonicChords` stacks thirds with
+`% 7`. They are a different representation, not another row in `SCALES`.
 
 ## The two tuning modes
 

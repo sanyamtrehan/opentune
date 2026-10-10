@@ -14,6 +14,7 @@ import { usePathname } from "next/navigation";
 const SECTIONS = [
   { label: "Tuner", href: "/" },
   { label: "Chords", href: "/chords" },
+  { label: "Scales", href: "/scales" },
   { label: "My Chords", href: null },
 ] as const;
 

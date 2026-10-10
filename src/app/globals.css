@@ -447,7 +447,7 @@ body > * {
    * sits above the paper and the tape above that, and neither is part of
    * the box the translate is a percentage of.
    */
-  .chord-stage {
+  .note-stage {
     padding-bottom: 9.5rem;
   }
 }
