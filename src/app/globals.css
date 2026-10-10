@@ -459,7 +459,8 @@ body > * {
 }
 
 /*
- * CAGED prototype stage. Throwaway — remove with src/app/caged.
+ * Prototype stage, shared by the CAGED and Keys pages. Throwaway —
+ * remove with src/app/caged and src/app/fifths.
  *
  * Wide *and* tall enough, and the page stops scrolling: the neck and the
  * wheel hold still while the note scrolls inside its own column. Reading
@@ -474,16 +475,16 @@ body > * {
  * say it.
  */
 @media (min-width: 900px) and (min-height: 760px) {
-  .caged-stage {
+  .lab-stage {
     overflow: hidden;
   }
 
-  .caged-panels {
+  .lab-panels {
     flex: 1 1 0%;
     min-height: 0;
   }
 
-  .caged-note {
+  .lab-note {
     height: 100%;
     overflow-y: auto;
     /* Room for the strip of tape, which sits above the paper's own box

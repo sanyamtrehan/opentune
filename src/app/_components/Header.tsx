@@ -17,6 +17,7 @@ const SECTIONS = [
   { label: "Scales", href: "/scales" },
   // PROTOTYPE — remove with src/app/caged and CagedLab.tsx.
   { label: "CAGED", href: "/caged" },
+  { label: "Keys", href: "/fifths" },
   { label: "My Chords", href: null },
 ] as const;
 

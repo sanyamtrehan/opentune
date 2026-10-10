@@ -237,7 +237,7 @@ export function CagedLab() {
         * clipped at the 11th fret — which hid the C shape returning at the
         * 12th, the one moment the whole prototype exists to show.
         */}
-      <main className="note-stage mx-auto flex min-h-0 w-full max-w-[1240px] flex-1 flex-col gap-4 overflow-y-auto px-2 pb-[max(14px,env(safe-area-inset-bottom))] min-[560px]:px-4 min-[900px]:gap-6 caged-stage min-[900px]:px-[clamp(16px,4vw,40px)] min-[900px]:pb-4">
+      <main className="note-stage mx-auto flex min-h-0 w-full max-w-[1240px] flex-1 flex-col gap-4 overflow-y-auto px-2 pb-[max(14px,env(safe-area-inset-bottom))] min-[560px]:px-4 min-[900px]:gap-6 lab-stage min-[900px]:px-[clamp(16px,4vw,40px)] min-[900px]:pb-4">
         <section className="no-scrollbar min-w-0 flex-none overflow-x-auto pb-1">
           <Neck
             rootPitchClass={rootPitchClass}
@@ -251,7 +251,7 @@ export function CagedLab() {
           />
         </section>
 
-        <div className="grid flex-none grid-cols-2 items-start gap-3 caged-panels min-[900px]:grid-cols-[300px_210px_minmax(0,1fr)] min-[900px]:gap-6">
+        <div className="grid flex-none grid-cols-2 items-start gap-3 lab-panels min-[900px]:grid-cols-[300px_210px_minmax(0,1fr)] min-[900px]:gap-6">
           <Wheel
             rootPitchClass={rootPitchClass}
             tonicName={tonicName}
@@ -277,7 +277,7 @@ export function CagedLab() {
             * bottom edge with no way to reach it. Short windows go back to
             * scrolling the page, which is ugly but never hides anything.
             */}
-          <div className="caged-note min-w-0">
+          <div className="lab-note min-w-0">
           <NoteSheet
             open={noteUp}
             onOpenChange={setNoteUp}
