@@ -35,7 +35,7 @@ export function Header() {
         <span className="label-caps hidden min-[560px]:inline">every tuning, free</span>
       </div>
 
-      <nav className="flex gap-1 rounded-full border border-edge bg-panel p-[3px]">
+      <nav className="no-scrollbar max-w-full overflow-x-auto flex gap-1 rounded-full border border-edge bg-panel p-[3px]">
         {SECTIONS.map(({ label, href }) => {
           if (!href) {
             return (

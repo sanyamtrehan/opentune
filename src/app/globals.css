@@ -457,3 +457,38 @@ body > * {
     transition: none;
   }
 }
+
+/*
+ * CAGED prototype stage. Throwaway — remove with src/app/caged.
+ *
+ * Wide *and* tall enough, and the page stops scrolling: the neck and the
+ * wheel hold still while the note scrolls inside its own column. Reading
+ * the note must not take the diagram off the screen, which is the same
+ * objection .note-sheet above makes about putting the note underneath on
+ * a phone.
+ *
+ * Short windows keep the ordinary page scroll. Freezing one of those put
+ * the chord grip off the bottom edge with nothing to scroll to reach it,
+ * which is worse than a scrollbar. Genuinely two-dimensional, like the
+ * note-sheet rules, and for the same reason a list of class names cannot
+ * say it.
+ */
+@media (min-width: 900px) and (min-height: 760px) {
+  .caged-stage {
+    overflow: hidden;
+  }
+
+  .caged-panels {
+    flex: 1 1 0%;
+    min-height: 0;
+  }
+
+  .caged-note {
+    height: 100%;
+    overflow-y: auto;
+    /* Room for the strip of tape, which sits above the paper's own box
+       and would otherwise be clipped by the scroller. */
+    padding-top: 12px;
+    padding-right: 4px;
+  }
+}
