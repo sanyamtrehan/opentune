@@ -86,8 +86,8 @@ const VIEW = 380;
 const CC = VIEW / 2;
 const R_OUT = 180;
 const R_MIN = 134;
-const R_DIM = 98;
-const R_HUB = 66;
+const R_DIM = 100;
+const R_HUB = 58;
 const GAP = 1.6;
 
 const RINGS: { ring: Ring; r0: number; r1: number; size: number; sub: number }[] = [
@@ -202,9 +202,9 @@ export function KeyCircle({
                         ? "var(--color-ground)"
                         : seated
                           ? "var(--color-ink)"
-                          : ring === "major"
-                            ? "var(--color-ink-faint)"
-                            : "var(--color-ink-muted)"
+                          : ring === "dim"
+                            ? "var(--color-ink-ghost)"
+                            : "var(--color-ink-faint)"
                     }
                   >
                     {seated ? seated.chord.symbol : ringLabel(major, ring)}
@@ -228,7 +228,7 @@ export function KeyCircle({
         );
       })}
 
-      <circle cx={CC} cy={CC} r={R_HUB - 4} fill="var(--color-ground-lift)" stroke="var(--color-edge)" />
+      <circle cx={CC} cy={CC} r={R_HUB - 2} fill="var(--color-ground-lift)" stroke="var(--color-edge)" />
       <text x={CC} y={CC - 7} textAnchor="middle" fontSize="24" fontWeight="700" fill="var(--color-ink)">
         {centreTitle}
       </text>
