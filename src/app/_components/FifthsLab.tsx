@@ -228,13 +228,13 @@ export function FifthsLab() {
 
           <div className="flex min-w-0 flex-col gap-4 min-[900px]:h-full min-[900px]:min-h-0">
             <section className="no-scrollbar flex flex-none gap-3 overflow-x-auto pb-1">
-              {shapes.length === 0 ? (
-                <p className="rounded-[14px] border border-edge bg-panel px-4 py-3 text-[13px] text-ink-muted">
-                  No shape for {chord.symbol} on a standard-tuned neck.
-                </p>
-              ) : (
-                shapes.map((shape) => (
-                  <figure
+              {/* No empty case: every diatonic chord of all nine scales in
+                  all twelve keys has at least five positions on a
+                  standard-tuned neck, diminished and augmented included —
+                  `voicings.ts` searches the board rather than storing a
+                  list, so the odd qualities are not a special case. */}
+              {shapes.map((shape) => (
+                <figure
                     key={shape.id}
                     className="flex-none rounded-[14px] border border-edge bg-panel px-2 py-2"
                     style={{ width: 150 }}
@@ -246,9 +246,8 @@ export function FifthsLab() {
                         s.note ? rootName(s.note) : null,
                       )}
                     />
-                  </figure>
-                ))
-              )}
+                </figure>
+              ))}
             </section>
 
             <div className="lab-note min-w-0">

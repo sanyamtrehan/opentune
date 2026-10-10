@@ -19,7 +19,7 @@ import { rootName } from "@/core/music/chords.ts";
 import type { DiatonicChord, ScaleName } from "@/core/music/scales.ts";
 import { SCALES, scaleNotes, scaleRoot } from "@/core/music/scales.ts";
 import type { Note } from "@/core/music/types.ts";
-import { indexOfMajor, pcOf, pitchClassAt, seatOf } from "./KeyCircle";
+import { indexOfMajor, pcOf, pitchClassAt, ringLabel, seatOf } from "./KeyCircle";
 
 /** Whether a set of segments forms one unbroken arc of the circle. */
 function contiguous(indices: number[]): boolean {
@@ -93,8 +93,7 @@ export function FifthsInfoPane({
   const seam = seated
     .filter((s) => s.seat !== null)
     .map(({ chord: c, seat }) => {
-      const ownMajor = scaleRoot(pitchClassAt(seat!.index), "major");
-      const own = seat!.ring === "outer" ? rootName(ownMajor) : `${rootName(scaleNotes(ownMajor, "major")[5])}m`;
+      const own = ringLabel(scaleRoot(pitchClassAt(seat!.index), "major"), seat!.ring);
       return own === c.chord.symbol ? null : { own, inKey: c.chord.symbol };
     })
     .filter((x) => x !== null);
@@ -177,7 +176,7 @@ export function FifthsInfoPane({
             <div>
               <dt className="text-paper-ink-muted">What the circle has room for</dt>
               <dd className="mt-0.5 text-paper-ink">
-                {indices.length} of the seven chords have a segment
+                    {indices.length} of the seven chords have a ring
                 {touching ? (
                   <>
                     , and they all touch: one unbroken block of the circle. That
@@ -195,12 +194,13 @@ export function FifthsInfoPane({
                 {homeless.length > 0 && (
                   <span className="mt-2 block">
                     {list(homeless.map((c) => c.chord.symbol))}{" "}
-                    {homeless.length === 1 ? "has" : "have"} none. The circle is
-                    built of major keys and their relative minors, and{" "}
-                    {homeless.length === 1 ? "a " : ""}
+                    {homeless.length === 1 ? "has" : "have"} no ring. The three
+                    rings are the 1st, 6th and 7th degrees of a major scale, and
+                    no degree of a major scale carries{" "}
+                    {homeless.length === 1 ? "an " : ""}
                     {list([...new Set(homeless.map((c) => c.chord.quality))])}{" "}
-                    {homeless.length === 1 ? "triad is" : "triads are"} neither.
-                    That absence is not a gap in the drawing — it is the reason{" "}
+                    {homeless.length === 1 ? "triad" : "triads"}. That absence is
+                    not a gap in the drawing — it is the reason{" "}
                     {homeless.length === 1 ? "it does" : "they do"} not behave
                     like the rest of the key.
                   </span>
