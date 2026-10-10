@@ -7,18 +7,19 @@
  * class (i * 7) % 12 and nothing is typed out. Majors on the outer ring,
  * their relative minors directly inside them.
  *
- * The thing this exists to show is that **the chords of a key are a
- * contiguous block**. Select C and six segments light: C with F and G
- * either side of it — I, IV and V — and Am, Dm and Em sitting directly
- * inside those three — vi, ii and iii. Six of the seven diatonic triads,
- * unbroken, in the same shape in every key. Turn the key and the block
- * rotates rigidly, which is the same lesson the CAGED wheel teaches about
- * its five wedges.
+ * Which segments light is **derived from the key's chords**, not assumed.
+ * A major triad goes to the outer segment with its root; a minor triad to
+ * the inner segment whose relative minor it is; and a chord that is
+ * neither — a diminished or augmented triad — has nowhere to go, because
+ * the circle is built of major and minor keys and nothing else.
  *
- * The seventh chord, the diminished vii°, has no segment at all. The
- * circle holds majors and minors; vii° is neither. That absence is honest
- * rather than a gap — it is the one chord of the key that does not behave
- * like a neighbour, and the drawing says so by having nowhere to put it.
+ * That derivation is the whole reason this is worth drawing. For major it
+ * reproduces the familiar block of six touching segments. For the modes it
+ * produces the *same* block, since a mode shares its parent's notes, which
+ * is the relative view made visual. For harmonic minor it visibly
+ * shatters: three of the seven chords have no segment at all, and the rest
+ * no longer touch. Asserting "the chords of a key are neighbours" would
+ * have been a lie in that case; computing it tells the truth in every one.
  *
  * Deliberately *not* shaped like the CAGED wheel. That one is five uneven
  * wedges with a marker riding the rim and it means fret positions; this is
@@ -28,21 +29,44 @@
  */
 
 import { rootName } from "@/core/music/chords.ts";
+import { midiOf } from "@/core/music/notes.ts";
 import type { DiatonicChord } from "@/core/music/scales.ts";
 import { scaleNotes, scaleRoot } from "@/core/music/scales.ts";
+import type { Note } from "@/core/music/types.ts";
 
 /** Pitch class at each position: a fifth per step, so nothing is tabulated. */
-export const pitchClassAt = (index: number) => (((index % 12) + 12) % 12) * 7 % 12;
+export const pitchClassAt = (index: number) => ((((index % 12) + 12) % 12) * 7) % 12;
 
-/** Which scale degree each neighbouring segment carries. */
-export const OUTER_DEGREE = { "-1": 4, "0": 1, "1": 5 } as const;
-export const INNER_DEGREE = { "-1": 2, "0": 6, "1": 3 } as const;
+/** The segment index that carries a given major key. */
+export const indexOfMajor = (pitchClass: number) => {
+  const pc = ((pitchClass % 12) + 12) % 12;
+  for (let i = 0; i < 12; i++) if (pitchClassAt(i) === pc) return i;
+  return 0;
+};
+
+/** The segment whose inner ring carries a given minor key. */
+export const indexOfMinor = (pitchClass: number) => indexOfMajor(pitchClass + 3);
+
+export const pcOf = (note: Note) => ((midiOf(note) % 12) + 12) % 12;
+
+/** A chord sits on the outer ring if it is major, the inner ring if minor. */
+export function seatOf(chord: DiatonicChord): { index: number; ring: "outer" | "inner" } | null {
+  const pc = pcOf(chord.chord.root);
+  if (chord.chord.quality === "major") return { index: indexOfMajor(pc), ring: "outer" };
+  if (chord.chord.quality === "minor") return { index: indexOfMinor(pc), ring: "inner" };
+  return null;
+}
+
+/** The relative minor of a key, spelled inside that key — D♯m under F♯, not E♭m. */
+export function relativeMinorName(majorTonic: Note): string {
+  return `${rootName(scaleNotes(majorTonic, "major")[5])}m`;
+}
 
 const CC = 170;
 const OUT_R = 162;
 const MID_R = 116;
 const IN_R = 74;
-const GAP = 1.6; // degrees of breathing room between segments
+const GAP = 1.6;
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -59,43 +83,30 @@ function ring(r0: number, r1: number, a0: number, a1: number): string {
   return `M ${x0} ${y0} L ${x1} ${y1} A ${r1} ${r1} 0 0 1 ${x2} ${y2} L ${x3} ${y3} A ${r0} ${r0} 0 0 0 ${x0} ${y0} Z`;
 }
 
-/**
- * The relative minor of a key, spelled inside that key — D♯m under F♯ major
- * rather than E♭m, because F♯ major is the scale that contains it.
- *
- * Only used for the segments that are *not* part of the chosen key. A lit
- * segment is named by the key it currently belongs to instead, and at the
- * enharmonic seam those two answers genuinely differ: the segment this calls
- * B♭m is A♯m when F♯ major is the key, because F♯ major has no B♭ in it.
- * Naming it from the segment's own key there would put a flat in a scale
- * made of sharps.
- */
-export function relativeMinorName(majorTonic: ReturnType<typeof scaleRoot>): string {
-  return `${rootName(scaleNotes(majorTonic, "major")[5])}m`;
-}
-
 export interface KeyCircleProps {
-  keyIndex: number;
-  /** The selected key's seven chords, which name every lit segment. */
+  /** The chosen key's chords. Everything lit is worked out from these. */
   chords: DiatonicChord[];
-  /** 1-7, which chord of the key is being shown on the neck. */
+  /** 1-7, which chord is being shown on the neck. */
   degree: number;
-  onPickKey: (index: number) => void;
+  centreTitle: string;
+  centreSub: string;
+  signature: string;
   onPickDegree: (degree: number) => void;
+  onPickKey: (pitchClass: number, kind: "major" | "minor") => void;
 }
 
-export function KeyCircle({ keyIndex, chords, degree, onPickKey, onPickDegree }: KeyCircleProps) {
-  const tonic = scaleRoot(pitchClassAt(keyIndex), "major");
-  const notes = scaleNotes(tonic, "major");
-  const sharps = notes.filter((n) => n.accidental > 0).length;
-  const flats = notes.filter((n) => n.accidental < 0).length;
-  const signature = sharps ? `${sharps} ♯` : flats ? `${flats} ♭` : "no ♯ or ♭";
-
-  /** Where a segment sits relative to the chosen key: -1, 0, +1, or outside. */
-  const offsetOf = (index: number) => {
-    const d = ((index - keyIndex + 12) % 12 + 18) % 12 - 6; // -6..5, signed
-    return d >= -1 && d <= 1 ? (d as -1 | 0 | 1) : null;
-  };
+export function KeyCircle({
+  chords,
+  degree,
+  centreTitle,
+  centreSub,
+  signature,
+  onPickDegree,
+  onPickKey,
+}: KeyCircleProps) {
+  const seats = chords.map((c) => ({ chord: c, seat: seatOf(c) }));
+  const at = (index: number, ring: "outer" | "inner") =>
+    seats.find((s) => s.seat?.index === index && s.seat.ring === ring)?.chord ?? null;
 
   return (
     <svg
@@ -103,7 +114,7 @@ export function KeyCircle({ keyIndex, chords, degree, onPickKey, onPickDegree }:
       preserveAspectRatio="xMidYMid meet"
       style={{ width: "100%", height: "auto", display: "block" }}
       role="img"
-      aria-label={`Circle of fifths, ${rootName(tonic)} major selected`}
+      aria-label={`Circle of fifths, ${centreTitle} ${centreSub.toLowerCase()} selected`}
     >
       {Array.from({ length: 12 }, (_, i) => {
         const a0 = i * 30 - 15 + GAP;
@@ -111,103 +122,107 @@ export function KeyCircle({ keyIndex, chords, degree, onPickKey, onPickDegree }:
         const mid = i * 30;
         const pc = pitchClassAt(i);
         const major = scaleRoot(pc, "major");
-        const offset = offsetOf(i);
-        const key = String(offset) as "-1" | "0" | "1";
 
-        const outerDegree = offset === null ? null : OUTER_DEGREE[key];
-        const innerDegree = offset === null ? null : INNER_DEGREE[key];
-        const outerOn = outerDegree !== null;
-        const innerOn = innerDegree !== null;
-        const outerPicked = outerOn && outerDegree === degree;
-        const innerPicked = innerOn && innerDegree === degree;
+        const outer = at(i, "outer");
+        const inner = at(i, "inner");
+        const outerPicked = outer?.degree === degree;
+        const innerPicked = inner?.degree === degree;
+        const outerTonic = outer?.degree === 1;
+        const innerTonic = inner?.degree === 1;
 
-        /* The tonic is amber because that is what a root is everywhere else
-           in this app; the rest of the neighbourhood is accent blue, which
-           is what a chord tone is. Nothing here invents a new colour. */
-        const outerFill = outerPicked
-          ? outerDegree === 1
-            ? "var(--color-finger-1)"
-            : "var(--color-accent)"
-          : outerOn
+        /* Amber is the tonic, because that is what a root is everywhere else
+           in this app; accent blue is the rest of the key, which is what a
+           chord tone is. Nothing here invents a new colour. */
+        const outerFill = outerTonic
+          ? "var(--color-finger-1)"
+          : outerPicked
             ? "var(--color-accent)"
-            : "var(--color-panel-raised)";
+            : outer
+              ? "var(--color-accent)"
+              : "var(--color-panel-raised)";
+        const innerFill = innerTonic
+          ? "var(--color-finger-1)"
+          : inner
+            ? "var(--color-accent)"
+            : "var(--color-panel)";
 
         const [ox, oy] = polar((OUT_R + MID_R) / 2, mid);
         const [ix, iy] = polar((MID_R + IN_R) / 2, mid);
+        const solidOuter = outerTonic || outerPicked;
+        const solidInner = innerTonic || innerPicked;
 
         return (
           <g key={i}>
-            {/* Outer: the major key. Clicking one that is not lit changes key;
-                clicking a lit one picks that chord. */}
             <g
               className="cursor-pointer"
-              onClick={() => (outerOn ? onPickDegree(outerDegree) : onPickKey(i))}
+              onClick={() => (outer ? onPickDegree(outer.degree) : onPickKey(pc, "major"))}
             >
               <path
                 d={ring(MID_R, OUT_R, a0, a1)}
                 fill={outerFill}
-                fillOpacity={outerPicked ? 1 : outerOn ? 0.22 : 1}
-                stroke={outerOn ? "var(--color-accent)" : "var(--color-edge)"}
-                strokeOpacity={outerOn ? 0.8 : 1}
-                strokeWidth={outerPicked ? 2 : 1}
+                fillOpacity={solidOuter ? 1 : outer ? 0.22 : 1}
+                stroke={outer ? "var(--color-accent)" : "var(--color-edge)"}
+                strokeOpacity={outer ? 0.8 : 1}
+                strokeWidth={solidOuter ? 2 : 1}
               />
               <text
                 x={ox}
-                y={oy + 6}
+                y={oy + (outer ? 2 : 6)}
                 textAnchor="middle"
                 fontSize="17"
                 fontWeight="700"
-                fill={outerPicked ? "var(--color-ground)" : outerOn ? "var(--color-ink)" : "var(--color-ink-faint)"}
+                fill={solidOuter ? "var(--color-ground)" : outer ? "var(--color-ink)" : "var(--color-ink-faint)"}
               >
-                {outerOn ? chords[outerDegree - 1].chord.symbol : rootName(major)}
+                {outer ? outer.chord.symbol : rootName(major)}
               </text>
-              {outerOn && (
+              {outer && (
                 <text
                   x={ox}
-                  y={oy + 20}
+                  y={oy + 17}
                   textAnchor="middle"
                   fontFamily="var(--font-mono)"
                   fontSize="9"
-                  fill={outerPicked ? "var(--color-ground)" : "var(--color-ink-muted)"}
+                  fill={solidOuter ? "var(--color-ground)" : "var(--color-ink-muted)"}
                 >
-                  {outerDegree === 1 ? "I" : outerDegree === 4 ? "IV" : "V"}
+                  {outer.numeral}
                 </text>
               )}
             </g>
 
-            {/* Inner: its relative minor. */}
             <g
               className="cursor-pointer"
-              onClick={() => (innerOn ? onPickDegree(innerDegree) : onPickKey(i))}
+              onClick={() =>
+                inner ? onPickDegree(inner.degree) : onPickKey((pc + 9) % 12, "minor")
+              }
             >
               <path
                 d={ring(IN_R, MID_R, a0, a1)}
-                fill={innerPicked ? "var(--color-accent)" : innerOn ? "var(--color-accent)" : "var(--color-panel)"}
-                fillOpacity={innerPicked ? 1 : innerOn ? 0.14 : 1}
-                stroke={innerOn ? "var(--color-accent)" : "var(--color-edge)"}
-                strokeOpacity={innerOn ? 0.55 : 1}
-                strokeWidth={innerPicked ? 2 : 1}
+                fill={innerFill}
+                fillOpacity={solidInner ? 1 : inner ? 0.14 : 1}
+                stroke={inner ? "var(--color-accent)" : "var(--color-edge)"}
+                strokeOpacity={inner ? 0.55 : 1}
+                strokeWidth={solidInner ? 2 : 1}
               />
               <text
                 x={ix}
-                y={iy + 4}
+                y={iy + (inner ? 0 : 4)}
                 textAnchor="middle"
                 fontSize="13"
                 fontWeight="600"
-                fill={innerPicked ? "var(--color-ground)" : innerOn ? "var(--color-ink)" : "var(--color-ink-muted)"}
+                fill={solidInner ? "var(--color-ground)" : inner ? "var(--color-ink)" : "var(--color-ink-muted)"}
               >
-                {innerOn ? chords[innerDegree - 1].chord.symbol : relativeMinorName(major)}
+                {inner ? inner.chord.symbol : relativeMinorName(major)}
               </text>
-              {innerOn && (
+              {inner && (
                 <text
                   x={ix}
-                  y={iy + 16}
+                  y={iy + 13}
                   textAnchor="middle"
                   fontFamily="var(--font-mono)"
                   fontSize="8"
-                  fill={innerPicked ? "var(--color-ground)" : "var(--color-ink-muted)"}
+                  fill={solidInner ? "var(--color-ground)" : "var(--color-ink-muted)"}
                 >
-                  {innerDegree === 6 ? "vi" : innerDegree === 2 ? "ii" : "iii"}
+                  {inner.numeral}
                 </text>
               )}
             </g>
@@ -217,10 +232,10 @@ export function KeyCircle({ keyIndex, chords, degree, onPickKey, onPickDegree }:
 
       <circle cx={CC} cy={CC} r={IN_R - 6} fill="var(--color-ground-lift)" stroke="var(--color-edge)" />
       <text x={CC} y={CC - 8} textAnchor="middle" fontSize="26" fontWeight="700" fill="var(--color-ink)">
-        {rootName(tonic)}
+        {centreTitle}
       </text>
-      <text x={CC} y={CC + 10} textAnchor="middle" fontSize="9" letterSpacing="0.18em" fill="var(--color-ink-faint)">
-        MAJOR
+      <text x={CC} y={CC + 10} textAnchor="middle" fontSize="8.5" letterSpacing="0.16em" fill="var(--color-ink-faint)">
+        {centreSub}
       </text>
       <text
         x={CC}
